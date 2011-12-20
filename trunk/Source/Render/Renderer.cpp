@@ -15,6 +15,7 @@
 #include "Renderer.h"
 #include "CPUTerrain.h"
 #include "Camera.h"
+#include "..\Misc\Vector3.h"
 //-- Render End
 
 static Renderer* _RenderImpl = 0;
@@ -69,7 +70,10 @@ void Renderer::Render()
 	glLoadIdentity();      
 
 	mCam->setView();
-	
+
+	float pos[4] = {0,0,1,0};
+	glLightfv(GL_LIGHT0, GL_POSITION, pos);
+
 	mCPUTerrain->Render();
 
 	glutSwapBuffers();
@@ -102,11 +106,10 @@ void Renderer::_InitOpenGL(int argc, char* argv[])
 
 	glEnable( GL_DEPTH_TEST );
 	glDepthFunc(GL_LEQUAL);
+	glEnable(GL_CULL_FACE);
+	//glEnable(GL_NORMALIZE);
 
 	_InitLighting();
-
-	
-
 }
 
 void Renderer::_InitWindow(unsigned int x, unsigned int y)

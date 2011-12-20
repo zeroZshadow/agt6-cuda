@@ -150,6 +150,7 @@ void CPUTerrain::Build(int width, int height, int depth)
 		Vector3 edge2 = vec3 - vec1;
 		normal = edge1.Cross(edge2);
 		normal.Normalize();
+
 		mNormList[i]   = normal.x;
 		mNormList[i+1] = normal.y;
 		mNormList[i+2] = normal.z;
@@ -195,7 +196,7 @@ void CPUTerrain::Render()
 	glEnd();
 
 	glEnable(GL_LIGHTING);
-	glScalef(0.05f,0.05f,0.05f);
+	//glScalef(0.05f,0.05f,0.05f);
 	glColor3f(1,1,0);
 	//-- Render polies
 	glBegin(GL_TRIANGLES);
@@ -203,7 +204,7 @@ void CPUTerrain::Render()
 		for (int i = 0; i < mTriUsed; i++)
 		{
 			glNormal3f(mNormList[mTriList[i]], mNormList[mTriList[i]+1], mNormList[mTriList[i]+2]);
-			glVertex3f(mVertList[mTriList[i]], mVertList[mTriList[i]+1], mVertList[mTriList[i]+2]);
+			glVertex3f(mVertList[mTriList[i]]*0.05f, mVertList[mTriList[i]+1]*0.05f, mVertList[mTriList[i]+2]*0.05f);
 		}
 	}
 	glEnd();
