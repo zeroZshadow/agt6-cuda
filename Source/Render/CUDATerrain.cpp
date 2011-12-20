@@ -1,26 +1,26 @@
 #include "CUDATerrain.h"
 
-CUDATerrain()
+CUDATerrain::CUDATerrain()
 {
 
 }
 
-~CUDATerrain()
+CUDATerrain::~CUDATerrain()
+{
+	
+}
+
+void		CUDATerrain::Build(int width, int height, int depth)
 {
 
 }
 
-void		Build(int width, int height, int depth)
+void		CUDATerrain::Destroy()
 {
-
+	
 }
 
-void		Destroy()
-{
-
-}
-
-void		Render()
+void		CUDATerrain::Render()
 {
 
 }

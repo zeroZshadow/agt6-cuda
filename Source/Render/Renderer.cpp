@@ -48,7 +48,7 @@ Renderer::Renderer(int argc, char* argv[])
 {
 	_InitOpenGL(argc, argv);
 	mCPUTerrain = new CPUTerrain();
-	mCPUTerrain->Build(20,20,20);
+	mCPUTerrain->Build(32,32,32);
 
 	mCam = new Camera();
 }
@@ -100,6 +100,9 @@ void Renderer::_InitOpenGL(int argc, char* argv[])
 	glShadeModel( GL_SMOOTH );
 	glEnable( GL_TEXTURE_2D );
 
+	glEnable( GL_DEPTH_TEST );
+	glDepthFunc(GL_LEQUAL);
+
 	_InitLighting();
 
 	
@@ -115,7 +118,23 @@ void Renderer::_InitWindow(unsigned int x, unsigned int y)
 
 void Renderer::_InitLighting()
 {
-	
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+
+	GLfloat g_LighDir[] = { 1.0f, 1.0f, 1.0f, 0.0f }; 
+	GLfloat g_LightAmbient[] = { 0.1f, 0.1f, 0.1f, 1.0f };
+	GLfloat g_LightDiffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat g_LightSpecular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat g_LighAttenuation0 = 1.0f;
+	GLfloat g_LighAttenuation1 = 0.0f;
+	GLfloat g_LighAttenuation2 = 0.0f;
+
+	glLightModelfv( GL_LIGHT_MODEL_AMBIENT, g_LightAmbient );
+	glLightfv( GL_LIGHT0, GL_DIFFUSE, g_LightDiffuse );
+	glLightfv( GL_LIGHT0, GL_SPECULAR, g_LightSpecular );
+	glLightf( GL_LIGHT0, GL_CONSTANT_ATTENUATION, g_LighAttenuation0 );
+	glLightf( GL_LIGHT0, GL_LINEAR_ATTENUATION, g_LighAttenuation1 );
+	glLightf( GL_LIGHT0, GL_QUADRATIC_ATTENUATION, g_LighAttenuation2 );
 }
 
 void Renderer::Resize(int w, int h)
