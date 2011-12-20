@@ -198,11 +198,23 @@
 			Name="Misc"
 			>
 			<File
+				RelativePath=".\Source\Misc\MathMisc.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Source\Misc\perlin.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\Source\Misc\Perlin.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Source\Misc\Vector3.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Source\Misc\Vector3.h"
 				>
 			</File>
 		</Filter>
@@ -215,6 +227,10 @@
 			</File>
 			<File
 				RelativePath=".\Source\Render\Camera.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Source\Render\CPUTables.h"
 				>
 			</File>
 			<File
