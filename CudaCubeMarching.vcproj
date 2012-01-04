@@ -198,6 +198,10 @@
 			Name="Misc"
 			>
 			<File
+				RelativePath=".\Source\Render\Geometry.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Source\Misc\MathMisc.h"
 				>
 			</File>
@@ -230,23 +234,23 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Source\Render\CPUMarcher.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Source\Render\CPUMarcher.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Source\Render\CPUTables.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Source\Render\CPUTerrain.cpp"
+				RelativePath=".\Source\Render\CUDAMarcher.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Source\Render\CPUTerrain.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Source\Render\CUDATerrain.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Source\Render\CUDATerrain.h"
+				RelativePath=".\Source\Render\CUDAMarcher.h"
 				>
 			</File>
 			<File

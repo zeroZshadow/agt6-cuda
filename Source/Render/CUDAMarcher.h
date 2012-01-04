@@ -1,11 +1,11 @@
 #pragma once;
 
 
-class CUDATerrain
+class CUDAMarcher
 {
 public:
-	CUDATerrain();
-	~CUDATerrain();
+	CUDAMarcher();
+	~CUDAMarcher();
 
 	void		Build(int width, int height, int depth);
 	void		Destroy();
@@ -14,5 +14,6 @@ public:
 
 protected:
 	float		mWidth, mHeight, mDepth;
+
 
 };
