@@ -1,7 +1,7 @@
 #ifndef PERLIN_H
 #define PERLIN_H
 
-#define STRICT				// Enable strict type checking
+//#define STRICT				// Enable strict type checking
 
 #define SIZE 256
 #define MASK 0xFF

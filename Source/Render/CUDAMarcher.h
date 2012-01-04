@@ -1,19 +1,25 @@
 #pragma once;
 
 
+class CUDABlock;
 class CUDAMarcher
 {
 public:
 	CUDAMarcher();
 	~CUDAMarcher();
 
-	void		Build(int width, int height, int depth);
-	void		Destroy();
+
+	void		Init(unsigned int aRank, int aCount);
+	void		Cubemarch();
 
 	void		Render();
 
 protected:
-	float		mWidth, mHeight, mDepth;
+	unsigned int m_Rank;
+
+	//Change later
+	unsigned int m_BlockCount;
+	CUDABlock* m_Blocks;
 
 
 };

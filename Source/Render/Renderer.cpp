@@ -14,6 +14,7 @@
 //-- Render headers
 #include "Renderer.h"
 #include "CPUMarcher.h"
+#include "CUDAMarcher.h"
 #include "Camera.h"
 #include "..\Misc\Vector3.h"
 //-- Render End
@@ -52,6 +53,11 @@ Renderer::Renderer(int argc, char* argv[])
 	mCPUMarcher->Init(32,32,32);
 	mCPUMarcher->Cubemarch();
 
+	mCUDAMarcher = new CUDAMarcher();
+	mCUDAMarcher->Init(32, 1); //Rank, Blockcount
+	mCUDAMarcher->Cubemarch();
+
+
 	mCam = new Camera();
 }
 
@@ -59,6 +65,7 @@ Renderer::~Renderer()
 {
 	//-- Empty
 	delete mCPUMarcher;
+	delete mCUDAMarcher;
 	delete mCam;
 }
 
@@ -79,7 +86,8 @@ void Renderer::Render()
 
 	glLightfv(GL_LIGHT0, GL_POSITION, bla);
 
-	mCPUMarcher->Render();
+	//mCPUMarcher->Render();
+	mCUDAMarcher->Render();
 
 	glutSwapBuffers();
 	glutPostRedisplay();
