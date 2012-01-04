@@ -3,7 +3,7 @@
 class CPerlin;
 
 class Vector3;
-class Triangle;
+struct Triangle;
 
 struct MarchBlock
 {
