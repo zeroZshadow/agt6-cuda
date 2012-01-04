@@ -13,7 +13,7 @@
 
 //-- Render headers
 #include "Renderer.h"
-#include "CPUTerrain.h"
+#include "CPUMarcher.h"
 #include "Camera.h"
 #include "..\Misc\Vector3.h"
 //-- Render End
@@ -48,8 +48,9 @@ void Renderer::Destory()
 Renderer::Renderer(int argc, char* argv[])
 {
 	_InitOpenGL(argc, argv);
-	mCPUTerrain = new CPUTerrain();
-	mCPUTerrain->Build(32,32,32);
+	mCPUMarcher = new CPUMarcher();
+	mCPUMarcher->Init(32,32,32);
+	mCPUMarcher->Cubemarch();
 
 	mCam = new Camera();
 }
@@ -57,24 +58,28 @@ Renderer::Renderer(int argc, char* argv[])
 Renderer::~Renderer()
 {
 	//-- Empty
-	delete mCPUTerrain;
+	delete mCPUMarcher;
 	delete mCam;
 }
 
 void Renderer::Render()
 {
-	// Clear the window with current clearing color
+	//-- Clear the window with current clearing color
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearDepth(1.0f);
 	glMatrixMode( GL_MODELVIEW );                                           // Switch to modelview matrix mode
-	glLoadIdentity();      
+	//-- glLoadIdentity();      
 
 	mCam->setView();
 
 	float pos[4] = {0,0,1,0};
 	glLightfv(GL_LIGHT0, GL_POSITION, pos);
 
-	mCPUTerrain->Render();
+	float bla[4] = {0,0,1,0};
+
+	glLightfv(GL_LIGHT0, GL_POSITION, bla);
+
+	mCPUMarcher->Render();
 
 	glutSwapBuffers();
 	glutPostRedisplay();
@@ -101,7 +106,7 @@ void Renderer::_InitOpenGL(int argc, char* argv[])
 
 	glutDisplayFunc(GLRenderCallback);
 	glClearColor(0,0,0,0);
-	glShadeModel( GL_SMOOTH );
+	glShadeModel( GL_FLAT );
 	glEnable( GL_TEXTURE_2D );
 
 	glEnable( GL_DEPTH_TEST );
@@ -124,7 +129,7 @@ void Renderer::_InitLighting()
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 
-	GLfloat g_LighDir[] = { 1.0f, 1.0f, 1.0f, 0.0f }; 
+	GLfloat g_LighDir[] = { 1.0f, 0.0f, 0.0f, 0.0f }; 
 	GLfloat g_LightAmbient[] = { 0.1f, 0.1f, 0.1f, 1.0f };
 	GLfloat g_LightDiffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	GLfloat g_LightSpecular[] = { 1.0f, 1.0f, 1.0f, 1.0f };

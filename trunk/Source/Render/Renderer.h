@@ -1,7 +1,7 @@
 #pragma once;
 
-class CPUTerrain;
-class CUDATerrain;
+class CPUMarcher;
+class CUDAMarcher;
 class Camera;
 
 class Renderer
@@ -25,8 +25,8 @@ protected:
 	void				_InitLighting();
 	void				_Resize();
 
-	CPUTerrain*			mCPUTerrain;
-	CUDATerrain*		mCUDATerrain;
+	CPUMarcher*			mCPUMarcher;
+	CUDAMarcher*		mCUDAMarcher;
 
 	Camera*				mCam;
 	

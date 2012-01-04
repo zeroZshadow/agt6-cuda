@@ -574,7 +574,8 @@ unsigned int numVertsTable[256] = {
     0,
 };
 
-
+//-- temporary table for vert positions. 
+//-- Needs to be generated on the fly with density value
 float vertsPos[12][3] = {
 	//-- front
 	{0,		0.5,	0},

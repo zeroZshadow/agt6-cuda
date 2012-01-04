@@ -57,6 +57,7 @@ int main(int argc, char** argv)
 	float elapsedTime = 0.2;
 	QueryPerformanceFrequency(&frequency);
 
+
 	while (true)
 	{
 		
