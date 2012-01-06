@@ -19,6 +19,9 @@
 #include "..\Misc\Vector3.h"
 //-- Render End
 
+#include <cutil_inline.h>
+#include <cuda_gl_interop.h>
+
 static Renderer* _RenderImpl = 0;
 
 //-- Callbacks:
@@ -101,6 +104,7 @@ void Renderer::Update(float aDT)
 
 void Renderer::_InitOpenGL(int argc, char* argv[])
 {
+	//Setup Opengl
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_ALPHA | GLUT_DEPTH);
 
@@ -112,6 +116,12 @@ void Renderer::_InitOpenGL(int argc, char* argv[])
 		exit(-1);
 	}
 
+	//Setup CUDA
+	cutilChooseCudaDevice(argc, argv);
+	cudaGLSetGLDevice( cutGetMaxGflopsDeviceId() );
+
+
+	//Opengl options
 	glutDisplayFunc(GLRenderCallback);
 	glClearColor(0,0,0,0);
 	glShadeModel( GL_FLAT );

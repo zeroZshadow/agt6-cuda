@@ -34,6 +34,8 @@
 			/>
 			<Tool
 				Name="Cudart Build Rule"
+				GPUDebugInfo="true"
+				Optimization="0"
 				Runtime="3"
 			/>
 			<Tool
@@ -68,7 +70,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cudart.lib freeglut_d.lib glew32.lib"
+				AdditionalDependencies="cudart.lib freeglut_d.lib glew32.lib cutil32D.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(CUDA_PATH)lib\Win32&quot;;&quot;$(ProjectDir)lib\FreeGlut\&quot;;&quot;$(ProjectDir)lib\Glew\&quot;"
 				IgnoreAllDefaultLibraries="false"
@@ -114,6 +116,7 @@
 			/>
 			<Tool
 				Name="Cudart Build Rule"
+				Runtime="2"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -130,7 +133,7 @@
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="&quot;$(ProjectDir)inc\FreeGlut\&quot;;&quot;$(ProjectDir)inc\Glew\&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -147,7 +150,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cudart.lib freeglut.lib glew32.lib"
+				AdditionalDependencies="cudart.lib freeglut.lib glew32.lib cutil32.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(CUDA_PATH)lib\Win32&quot;;&quot;$(ProjectDir)lib\FreeGlut\&quot;;&quot;$(ProjectDir)lib\Glew\&quot;"
 				GenerateDebugInformation="true"

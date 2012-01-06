@@ -8,6 +8,9 @@
 #include "Render/Renderer.h"
 #include "Render/Camera.h"
 
+#include <cutil_inline.h>    // includes cuda.h and cuda_runtime_api.h
+
+
 Camera* _cam;
 void CheckControlls(float aDT)
 {
@@ -70,7 +73,7 @@ int main(int argc, char** argv)
 		elapsedTime = (float)(t2.QuadPart - t1.QuadPart) / frequency.QuadPart;
 	}
 	
-
+	cutilDeviceReset();
 
 
 	return 0;

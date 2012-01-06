@@ -2,7 +2,9 @@
 
 #include "glew.h"
 
-#include <cuda_runtime_api.h>
+#include <cutil_inline.h>    // includes cuda.h and cuda_runtime_api.h
+#include <cutil_gl_inline.h>
+
 #include <cuda_gl_interop.h>
 
 CUDABlock::CUDABlock()
@@ -31,9 +33,9 @@ CUDABlock::CUDABlock()
 
 CUDABlock::~CUDABlock()
 {
-	cudaGraphicsUnregisterResource(cuda_VBO_Vertices);
-	cudaGraphicsUnregisterResource(cuda_VBO_Normals);
-	cudaGraphicsUnregisterResource(cuda_VBO_Indices);
+	cutilSafeCall(cudaGraphicsUnregisterResource(cuda_VBO_Vertices));
+	cutilSafeCall(cudaGraphicsUnregisterResource(cuda_VBO_Normals));
+	cutilSafeCall(cudaGraphicsUnregisterResource(cuda_VBO_Indices));
 
 	glDeleteBuffers(1, &m_VBO_Vertices);
 	glDeleteBuffers(1, &m_VBO_Normals);
@@ -64,28 +66,33 @@ void CUDABlock::Init()
 	//Setup VBO's
 	unsigned int MaxVertices = m_Rank * m_Rank * m_Rank * 5;
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Vertices );
-	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(Vector3) * MaxVertices, NULL, GL_DYNAMIC_DRAW_ARB );
+	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(Vector3) * MaxVertices, 0, GL_DYNAMIC_DRAW_ARB );
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Normals );
-	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(Vector3) * MaxVertices, NULL, GL_DYNAMIC_DRAW_ARB );
+	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(Vector3) * MaxVertices, 0, GL_DYNAMIC_DRAW_ARB );
 
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Indices );
-	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(GLuint) * MaxVertices, NULL, GL_DYNAMIC_DRAW_ARB );
+	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(GLuint) * MaxVertices, 0, GL_DYNAMIC_DRAW_ARB );
+
+	if(glGetError() != GL_NO_ERROR)	{
+		printf("Error creating VBOs");
+		return;
+	}
 
 	//Link VBO's
-	cudaGraphicsGLRegisterBuffer(&cuda_VBO_Vertices, m_VBO_Vertices, cudaGraphicsMapFlagsWriteDiscard);
-	cudaGraphicsGLRegisterBuffer(&cuda_VBO_Normals, m_VBO_Normals, cudaGraphicsMapFlagsWriteDiscard);
-	cudaGraphicsGLRegisterBuffer(&cuda_VBO_Indices, m_VBO_Indices, cudaGraphicsMapFlagsWriteDiscard);
+	cutilSafeCall(cudaGraphicsGLRegisterBuffer(&cuda_VBO_Vertices, m_VBO_Vertices, cudaGraphicsMapFlagsWriteDiscard));
+	cutilSafeCall(cudaGraphicsGLRegisterBuffer(&cuda_VBO_Normals, m_VBO_Normals, cudaGraphicsMapFlagsWriteDiscard));
+	cutilSafeCall(cudaGraphicsGLRegisterBuffer(&cuda_VBO_Indices, m_VBO_Indices, cudaGraphicsMapFlagsWriteDiscard));
 }
 
 void CUDABlock::Build()
 {
 	//Map ALL THE VBO'S
 	size_t num_bytes;
-	cudaGraphicsMapResources(1, &cuda_VBO_Vertices, 0);
-	cudaGraphicsResourceGetMappedPointer((void**)&cuda_Vertices, &num_bytes, cuda_VBO_Vertices);
+	cutilSafeCall(cudaGraphicsMapResources(1, &cuda_VBO_Vertices, 0));
+	cutilSafeCall(cudaGraphicsResourceGetMappedPointer((void**)&cuda_Vertices, &num_bytes, cuda_VBO_Vertices));
 
 	//Unmap
-	cudaGraphicsUnmapResources(1, &cuda_VBO_Vertices, 0);
+	cutilSafeCall(cudaGraphicsUnmapResources(1, &cuda_VBO_Vertices, 0));
 }
 
 #define BUFFER_OFFSET(i) ((char*)0 + (i))
