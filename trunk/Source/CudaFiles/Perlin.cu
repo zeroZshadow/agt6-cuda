@@ -1,8 +1,4 @@
-#include <cuda_runtime_api.h>
-
-
-#include <stdlib.h>
-#include <math.h>
+#include "cutil_math.h"
 
 // Data
 #define SIZE 256
