@@ -7,6 +7,8 @@
 
 #include <cuda_gl_interop.h>
 
+extern "C" void launch_CreateCube(dim3 grid, dim3 threads, float3* aVertList, float3* aNormList, GLuint* aIndexList);
+
 CUDABlock::CUDABlock()
 {
 	m_VBO_Vertices = 0;
@@ -66,9 +68,9 @@ void CUDABlock::Init()
 	//Setup VBO's
 	unsigned int MaxVertices = m_Rank * m_Rank * m_Rank * 5;
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Vertices );
-	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(Vector3) * MaxVertices, 0, GL_DYNAMIC_DRAW_ARB );
+	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * MaxVertices, 0, GL_DYNAMIC_DRAW_ARB );
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Normals );
-	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(Vector3) * MaxVertices, 0, GL_DYNAMIC_DRAW_ARB );
+	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * MaxVertices, 0, GL_DYNAMIC_DRAW_ARB );
 
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Indices );
 	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(GLuint) * MaxVertices, 0, GL_DYNAMIC_DRAW_ARB );
@@ -90,9 +92,26 @@ void CUDABlock::Build()
 	size_t num_bytes;
 	cutilSafeCall(cudaGraphicsMapResources(1, &cuda_VBO_Vertices, 0));
 	cutilSafeCall(cudaGraphicsResourceGetMappedPointer((void**)&cuda_Vertices, &num_bytes, cuda_VBO_Vertices));
+	cutilSafeCall(cudaGraphicsMapResources(1, &cuda_VBO_Normals, 0));
+	cutilSafeCall(cudaGraphicsResourceGetMappedPointer((void**)&cuda_Normals, &num_bytes, cuda_VBO_Normals));
+	cutilSafeCall(cudaGraphicsMapResources(1, &cuda_VBO_Indices, 0));
+	cutilSafeCall(cudaGraphicsResourceGetMappedPointer((void**)&cuda_Indices, &num_bytes, cuda_VBO_Indices));
+
+
+	int threads = 128;
+	dim3 grid( (m_Rank*m_Rank*m_Rank) / threads, 1, 1);
+	// get around maximum grid size of 65535 in each dimension
+	if (grid.x > 65535) {
+		grid.y = grid.x / 32768;
+		grid.x = 32768;
+	}
+	launch_CreateCube(grid, threads,cuda_Vertices, cuda_Normals, cuda_Indices);
+	m_FaceCount=1; //TODO: change propperly
 
 	//Unmap
 	cutilSafeCall(cudaGraphicsUnmapResources(1, &cuda_VBO_Vertices, 0));
+	cutilSafeCall(cudaGraphicsUnmapResources(1, &cuda_VBO_Normals, 0));
+	cutilSafeCall(cudaGraphicsUnmapResources(1, &cuda_VBO_Indices, 0));
 }
 
 #define BUFFER_OFFSET(i) ((char*)0 + (i))

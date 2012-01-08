@@ -1,5 +1,5 @@
 #pragma once
-#include "../Misc/Vector3.h"
+#include "vector_types.h"
 
 struct cudaGraphicsResource;
 class CUDABlock
@@ -18,8 +18,8 @@ public:
 	cudaGraphicsResource *cuda_VBO_Vertices;
 	cudaGraphicsResource *cuda_VBO_Normals;
 	cudaGraphicsResource *cuda_VBO_Indices;
-	Vector3* cuda_Vertices;
-	Vector3* cuda_Normals;
+	float3* cuda_Vertices;
+	float3* cuda_Normals;
 	unsigned int* cuda_Indices;
 
 	unsigned int m_FaceCount;
