@@ -189,6 +189,10 @@
 			Name="Cudos"
 			>
 			<File
+				RelativePath=".\Source\CudaFiles\Cube.cu"
+				>
+			</File>
+			<File
 				RelativePath=".\Source\CudaFiles\Perlin.cu"
 				>
 			</File>
