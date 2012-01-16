@@ -9,6 +9,7 @@
 
 extern "C" void launch_CreateCube(dim3 grid, dim3 threads, float3* aVertList, float3* aNormList, GLuint* aIndexList);
 
+
 CUDABlock::CUDABlock()
 {
 	m_VBO_Vertices = 0;
@@ -30,6 +31,9 @@ CUDABlock::CUDABlock()
 	m_X = 0;
 	m_Y = 0;
 	m_Z = 0;
+
+
+
 
 }
 
@@ -66,7 +70,7 @@ void CUDABlock::Init()
 	glGenBuffersARB( 1, &m_VBO_Indices );
 
 	//Setup VBO's
-	unsigned int MaxVertices = m_Rank * m_Rank * m_Rank * 5;
+	unsigned int MaxVertices = m_Rank * m_Rank * m_Rank * 15;
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Vertices );
 	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * MaxVertices, 0, GL_DYNAMIC_DRAW_ARB );
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Normals );
@@ -84,7 +88,11 @@ void CUDABlock::Init()
 	cutilSafeCall(cudaGraphicsGLRegisterBuffer(&cuda_VBO_Vertices, m_VBO_Vertices, cudaGraphicsMapFlagsWriteDiscard));
 	cutilSafeCall(cudaGraphicsGLRegisterBuffer(&cuda_VBO_Normals, m_VBO_Normals, cudaGraphicsMapFlagsWriteDiscard));
 	cutilSafeCall(cudaGraphicsGLRegisterBuffer(&cuda_VBO_Indices, m_VBO_Indices, cudaGraphicsMapFlagsWriteDiscard));
+
+	
+
 }
+
 
 void CUDABlock::Build()
 {
@@ -97,16 +105,11 @@ void CUDABlock::Build()
 	cutilSafeCall(cudaGraphicsMapResources(1, &cuda_VBO_Indices, 0));
 	cutilSafeCall(cudaGraphicsResourceGetMappedPointer((void**)&cuda_Indices, &num_bytes, cuda_VBO_Indices));
 
+	m_FaceCount= (32*32*32*15); //TODO: change propperly
 
-	int threads = 128;
-	dim3 grid( (m_Rank*m_Rank*m_Rank) / threads, 1, 1);
-	// get around maximum grid size of 65535 in each dimension
-	if (grid.x > 65535) {
-		grid.y = grid.x / 32768;
-		grid.x = 32768;
-	}
-	launch_CreateCube(grid, threads,cuda_Vertices, cuda_Normals, cuda_Indices);
-	m_FaceCount=1; //TODO: change propperly
+	dim3 gridDim(8,8,1);
+	dim3 blockDim(4,4,32);
+	launch_CreateCube(gridDim, blockDim, cuda_Vertices, cuda_Normals, cuda_Indices);
 
 	//Unmap
 	cutilSafeCall(cudaGraphicsUnmapResources(1, &cuda_VBO_Vertices, 0));
@@ -130,7 +133,7 @@ void CUDABlock::Render()
 
 	//Draw
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_VBO_Indices );
-	glDrawElements( GL_TRIANGLES, m_FaceCount*3, GL_UNSIGNED_INT, BUFFER_OFFSET(0) );
+	glDrawElements( GL_TRIANGLES, m_FaceCount, GL_UNSIGNED_INT, BUFFER_OFFSET(0) );
 
 	glDisableClientState( GL_NORMAL_ARRAY );
 	glDisableClientState( GL_VERTEX_ARRAY );

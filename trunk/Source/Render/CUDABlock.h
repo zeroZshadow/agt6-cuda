@@ -1,5 +1,6 @@
 #pragma once
 #include "vector_types.h"
+class CPerlin;
 
 struct cudaGraphicsResource;
 class CUDABlock
@@ -11,6 +12,7 @@ public:
 	void Init();
 	void Build();
 	void Render();
+
 
 	unsigned int m_VBO_Vertices;
 	unsigned int m_VBO_Normals;
@@ -29,4 +31,5 @@ public:
 	int m_X;
 	int m_Y;
 	int m_Z;
+
 };

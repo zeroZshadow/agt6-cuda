@@ -33,7 +33,8 @@ public:
 	void		FillPerlin();
 
 	void		Cubemarch();
-	
+	float		Sample(const Vector3& pos);
+
 	void		Destroy();
 	void		Render();
 
@@ -43,6 +44,8 @@ protected:
 
 	CPerlin*	mPerlin;
 	float*		mData;
+	float*		mData2;
+	float*		mData3;
 
 	float		mWidth, mHeight, mDepth;
 	

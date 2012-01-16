@@ -14,9 +14,13 @@
     http://local.wasp.uwa.edu.au/~pbourke/geometry/polygonise/
 */
 
+//#pragma once;
+
 // edge table maps 8-bit flag representing which cube vertices are inside
 // the isosurface to 12-bit number indicating which edges are intersected
-unsigned int edgeTable[256] = {
+#define edgeTableSize 256
+
+unsigned int edgeTablePC[edgeTableSize] = {
 	0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
 	0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
 	0x190, 0x99 , 0x393, 0x29a, 0x596, 0x49f, 0x795, 0x69c,
@@ -53,8 +57,11 @@ unsigned int edgeTable[256] = {
 
 // triangle table maps same cube vertex index to a list of up to 5 triangles
 // which are built from the interpolated edge vertices
+#define triTableSize 256
+#define triTableSize2 16
+
 #define X 255
-unsigned int triTable[256][16] = {
+unsigned int triTablePC[triTableSize][triTableSize2] = {
     {X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X},
 	{0, 8, 3, X, X, X, X, X, X, X, X, X, X, X, X, X},
 	{0, 1, 9, X, X, X, X, X, X, X, X, X, X, X, X, X},
@@ -315,7 +322,9 @@ unsigned int triTable[256][16] = {
 #undef X
 
 // number of vertices for each case above
-unsigned int numVertsTable[256] = {
+#define numVertsTableSize 256
+
+unsigned int numVertsTablePC[numVertsTableSize] = {
     0,
     3,
     3,
@@ -576,7 +585,7 @@ unsigned int numVertsTable[256] = {
 
 //-- temporary table for vert positions. 
 //-- Needs to be generated on the fly with density value
-float vertsPos[12][3] = {
+float vertsPosPC[12][3] = {
 	//-- front
 	{0,		0.5,	0},
 	{0.5f,	1,		0},

@@ -136,8 +136,8 @@ void CPUMarcher::Cubemarch()
 				}
 
 				//-- Creating triangles
-				unsigned int edge = edgeTable[bitmap];
-				unsigned int vertNr = numVertsTable[bitmap];
+				unsigned int edge = edgeTablePC[bitmap];
+				unsigned int vertNr = numVertsTablePC[bitmap];
 				if (vertNr >= 255 || vertNr <= 0)
 				{
 					continue;
@@ -146,21 +146,21 @@ void CPUMarcher::Cubemarch()
 				for (int i = 0; i < vertNr/3; i++)
 				{
 					int vert  = i*3;
-					vertBuf[vertUsed].x = vertsPos[triTable[bitmap][vert]][0] + (float)x;
-					vertBuf[vertUsed].y = vertsPos[triTable[bitmap][vert]][1] + (float)y;
-					vertBuf[vertUsed].z = vertsPos[triTable[bitmap][vert]][2] + (float)z;
+					vertBuf[vertUsed].x = vertsPosPC[triTablePC[bitmap][vert]][0] + (float)x;
+					vertBuf[vertUsed].y = vertsPosPC[triTablePC[bitmap][vert]][1] + (float)y;
+					vertBuf[vertUsed].z = vertsPosPC[triTablePC[bitmap][vert]][2] + (float)z;
 					triBuf[triUsed].one = vertUsed++;
 					
 					vert++;
-					vertBuf[vertUsed].x = vertsPos[triTable[bitmap][vert]][0] + (float)x;
-					vertBuf[vertUsed].y = vertsPos[triTable[bitmap][vert]][1] + (float)y;
-					vertBuf[vertUsed].z = vertsPos[triTable[bitmap][vert]][2] + (float)z;
+					vertBuf[vertUsed].x = vertsPosPC[triTablePC[bitmap][vert]][0] + (float)x;
+					vertBuf[vertUsed].y = vertsPosPC[triTablePC[bitmap][vert]][1] + (float)y;
+					vertBuf[vertUsed].z = vertsPosPC[triTablePC[bitmap][vert]][2] + (float)z;
 					triBuf[triUsed].two = vertUsed++;	
 
 					vert++;
-					vertBuf[vertUsed].x = vertsPos[triTable[bitmap][vert]][0] + (float)x;
-					vertBuf[vertUsed].y = vertsPos[triTable[bitmap][vert]][1] + (float)y;
-					vertBuf[vertUsed].z = vertsPos[triTable[bitmap][vert]][2] + (float)z;
+					vertBuf[vertUsed].x = vertsPosPC[triTablePC[bitmap][vert]][0] + (float)x;
+					vertBuf[vertUsed].y = vertsPosPC[triTablePC[bitmap][vert]][1] + (float)y;
+					vertBuf[vertUsed].z = vertsPosPC[triTablePC[bitmap][vert]][2] + (float)z;
 					triBuf[triUsed].three = vertUsed++;
 					triUsed++;
 				}			
