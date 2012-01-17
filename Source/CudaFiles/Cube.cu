@@ -76,6 +76,11 @@ __device__ float SampleData3( uint3 pos )
 }
 
 
+__device__ float DensityWithFloor( uint3 pos, float floorMultiplier)
+{
+	return SampleData1( pos * floorMultiplier  ) + SampleData2( pos ) + SampleData3( pos ) - (pos.y * floorMultiplier);
+}
+
 __global__ void cuda_CreateCube(float3* aVertList, float3* aNormList, unsigned int* aIndexList)
 {
 	int column = ( blockDim.x * blockIdx.x) + threadIdx.x;
@@ -86,45 +91,18 @@ __global__ void cuda_CreateCube(float3* aVertList, float3* aNormList, unsigned i
 	vertex *= 15;
 	int triangle = vertex;
 
-	//float xdim = (float)column * 0.05f;
-	//float ydim = (float)row * 0.05f;
-	//float zdim = (float)depth * 0.05f;
-
 	{
 	float points[8];
 	unsigned int bitmap = 0;
 
-		points[0] = SampleData1( make_uint3( row, column, depth ) );//- column * 0.05;
-		points[0] += SampleData2( make_uint3( row, column, depth ) );
-		points[0] += SampleData3( make_uint3( row, column, depth ) );
-
-		points[1] = SampleData1( make_uint3( row, column+1, depth ) );// - (column+1) * 0.05;;
-		points[1] += SampleData2( make_uint3( row, column+1, depth ) );
-		points[1] += SampleData3( make_uint3( row, column+1, depth ) );
-
-		points[2] = SampleData1( make_uint3( row+1, column+1, depth ) );// - (column+1) * 0.05;
-		points[2] += SampleData2( make_uint3( row+1, column+1, depth ) );
-		points[2] += SampleData3( make_uint3( row+1, column+1, depth ) );
-
-		points[3] = SampleData1( make_uint3( row+1, column, depth ) );//- column * 0.05;
-		points[3] += SampleData2( make_uint3( row+1, column, depth ) );
-		points[3] += SampleData3( make_uint3( row+1, column, depth ) );
-
-		points[4] = SampleData1( make_uint3( row, column, depth+1 ) );//- column * 0.05;
-		points[4] += SampleData2( make_uint3( row, column, depth+1 ) );
-		points[4] += SampleData3( make_uint3( row, column, depth+1 ) );
-
-		points[5] = SampleData1( make_uint3( row, column+1, depth+1 ) );// - (column+1) * 0.05;;
-		points[5] += SampleData2( make_uint3( row, column+1, depth+1 ) );
-		points[5] += SampleData3( make_uint3( row, column+1, depth+1 ) );
-
-		points[6] = SampleData1( make_uint3( row+1, column+1, depth+1 ) );// - (column+1) * 0.05;;
-		points[6] += SampleData2( make_uint3( row+1, column+1, depth+1 ) );
-		points[6] += SampleData3( make_uint3( row+1, column+1, depth+1 ) );
-
-		points[7] = SampleData1( make_uint3( row+1, column, depth+1 ) );// - column * 0.05;;
-		points[7] += SampleData2( make_uint3( row+1, column, depth+1 ) );
-		points[7] += SampleData3( make_uint3( row+1, column, depth+1 ) );
+		points[0] = DensityWithFloor( make_uint3( row, column, depth ),  0.05 );//- column * 0.05;
+		points[1] = DensityWithFloor( make_uint3( row, column+1, depth ), 0.05 );// - (column+1) * 0.05;;
+		points[2] = DensityWithFloor( make_uint3( row+1, column+1, depth ), 0.05 );// - (column+1) * 0.05;
+		points[3] = DensityWithFloor( make_uint3( row+1, column, depth ), 0.05 );//- column * 0.05;
+		points[4] = DensityWithFloor( make_uint3( row, column, depth+1 ), 0.05 );//- column * 0.05;
+		points[5] = DensityWithFloor( make_uint3( row, column+1, depth+1) , 0.05 );// - (column+1) * 0.05;;
+		points[6] = DensityWithFloor( make_uint3( row+1, column+1, depth+1 ), 0.05 );// - (column+1) * 0.05;;
+		points[7] = DensityWithFloor( make_uint3( row+1, column, depth+1 ), 0.05 );// - column * 0.05;;
 
 		
 		//--Create lookup bitmap to find the edge table
@@ -175,7 +153,6 @@ __global__ void cuda_CreateCube(float3* aVertList, float3* aNormList, unsigned i
 				aIndexList[triangle] = vertex++;
 				triangle++;
 				
-
 				//aVertList[vertex] = vertsPos[triTablePC[bitmap][i]];
 				//aVertList[vertex] += make_float3( row, column, depth );
 				//aTriList[triangle] = vertex++;
@@ -206,8 +183,8 @@ __global__ void cuda_generateNormals(float3* aVertList, float3* aNormList, unsig
 	
 	for (int i = vertex; i < vertex+15; i+=3)
 	{	
-		//if(aIndexList[i] == aIndexList[i+1] == aIndexList[i+2] ==0)
-		//{continue;}
+		if(aIndexList[i] == 0 && aIndexList[i+1] == 0 && aIndexList[i+2] ==0)
+		{continue;}
 
 		vec1 = aVertList[i];
 		vec2 = aVertList[i+1];
@@ -233,6 +210,8 @@ void launch_CreateCube(dim3 grid, dim3 threads, float3* aVertList, float3* aNorm
 	cutilCheckMsg("cuda_CreateCube failed");
 	cuda_generateNormals<<<grid, threads>>>(aVertList, aNormList, aIndexList);
 	cutilCheckMsg("cuda_CreateCube failed");
+
+
 }
 
 
