@@ -104,7 +104,14 @@ __global__ void cuda_CreateCube(float3* aVertList, float3* aNormList, unsigned i
 		points[6] = DensityWithFloor( make_uint3( row+1, column+1, depth+1 ), 0.05 );// - (column+1) * 0.05;;
 		points[7] = DensityWithFloor( make_uint3( row+1, column, depth+1 ), 0.05 );// - column * 0.05;;
 
-		
+		for(int i = 0; i < 15; i++)
+		{
+			aVertList[vertex + i] = make_float3(0); 
+			aNormList[vertex + i] = make_float3(0);
+			aIndexList[triangle+ i] = 0;
+		}
+
+
 		//--Create lookup bitmap to find the edge table
 		for (int i = 0; i < 8; i++)
 		{
@@ -147,7 +154,7 @@ __global__ void cuda_CreateCube(float3* aVertList, float3* aNormList, unsigned i
 			for (int i = 0; i < vertNr; i++)
 			{
 				aVertList[vertex] = vertsPos[tex1Dfetch(tTriTex, (bitmap * 16) + i)];
-				aNormList[vertex] = make_float3(0,0,1);
+				//aNormList[vertex] = make_float3(0,0,1);
 				aVertList[vertex] += make_float3( row, column, depth);
 				aVertList[vertex] *= make_float3( 0.05, 0.05, 0.05);
 				aIndexList[triangle] = vertex++;
