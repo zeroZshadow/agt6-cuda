@@ -94,14 +94,37 @@ __global__ void cuda_CreateCube(float3* aVertList, float3* aNormList, unsigned i
 	float points[8];
 	unsigned int bitmap = 0;
 
-		points[0] = SampleData1( make_uint3( row, column, depth ) )- column * 0.05;
-		points[1] = SampleData1( make_uint3( row, column+1, depth ) ) - (column+1) * 0.05;;
-		points[2] = SampleData1( make_uint3( row+1, column+1, depth ) ) - (column+1) * 0.05;
-		points[3] = SampleData1( make_uint3( row+1, column, depth ) )- column * 0.05;
-		points[4] = SampleData1( make_uint3( row, column, depth+1 ) )- column * 0.05;
-		points[5] = SampleData1( make_uint3( row, column+1, depth+1 ) ) - (column+1) * 0.05;;
-		points[6] = SampleData1( make_uint3( row+1, column+1, depth+1 ) ) - (column+1) * 0.05;;
-		points[7] = SampleData1( make_uint3( row+1, column, depth+1 ) ) - column * 0.05;;
+		points[0] = SampleData1( make_uint3( row, column, depth ) );//- column * 0.05;
+		points[0] += SampleData2( make_uint3( row, column, depth ) );
+		points[0] += SampleData3( make_uint3( row, column, depth ) );
+
+		points[1] = SampleData1( make_uint3( row, column+1, depth ) );// - (column+1) * 0.05;;
+		points[1] += SampleData2( make_uint3( row, column+1, depth ) );
+		points[1] += SampleData3( make_uint3( row, column+1, depth ) );
+
+		points[2] = SampleData1( make_uint3( row+1, column+1, depth ) );// - (column+1) * 0.05;
+		points[2] += SampleData2( make_uint3( row+1, column+1, depth ) );
+		points[2] += SampleData3( make_uint3( row+1, column+1, depth ) );
+
+		points[3] = SampleData1( make_uint3( row+1, column, depth ) );//- column * 0.05;
+		points[3] += SampleData2( make_uint3( row+1, column, depth ) );
+		points[3] += SampleData3( make_uint3( row+1, column, depth ) );
+
+		points[4] = SampleData1( make_uint3( row, column, depth+1 ) );//- column * 0.05;
+		points[4] += SampleData2( make_uint3( row, column, depth+1 ) );
+		points[4] += SampleData3( make_uint3( row, column, depth+1 ) );
+
+		points[5] = SampleData1( make_uint3( row, column+1, depth+1 ) );// - (column+1) * 0.05;;
+		points[5] += SampleData2( make_uint3( row, column+1, depth+1 ) );
+		points[5] += SampleData3( make_uint3( row, column+1, depth+1 ) );
+
+		points[6] = SampleData1( make_uint3( row+1, column+1, depth+1 ) );// - (column+1) * 0.05;;
+		points[6] += SampleData2( make_uint3( row+1, column+1, depth+1 ) );
+		points[6] += SampleData3( make_uint3( row+1, column+1, depth+1 ) );
+
+		points[7] = SampleData1( make_uint3( row+1, column, depth+1 ) );// - column * 0.05;;
+		points[7] += SampleData2( make_uint3( row+1, column, depth+1 ) );
+		points[7] += SampleData3( make_uint3( row+1, column, depth+1 ) );
 
 		
 		//--Create lookup bitmap to find the edge table
