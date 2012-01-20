@@ -64,7 +64,7 @@ Renderer::Renderer(int argc, char* argv[])
 	mCPUMarcher->Cubemarch();
 
 	mCUDAMarcher = new CUDAMarcher();
-	mCUDAMarcher->Init(32, 1); //Rank, Blockcount
+	mCUDAMarcher->Init(2, 2, 2); //Rank, Blockcount
 	mCUDAMarcher->Cubemarch();
 
 
@@ -130,7 +130,7 @@ void Renderer::_InitOpenGL(int argc, char* argv[])
 
 	//Opengl options
 	glutDisplayFunc(GLRenderCallback);
-	glClearColor(0,1,0,0);
+	glClearColor(0.2,0.2,1,0);
 	glShadeModel( GL_FLAT );
 	glEnable( GL_TEXTURE_2D );
 
@@ -155,8 +155,8 @@ void Renderer::_InitLighting()
 	glEnable(GL_LIGHT0);
 
 	GLfloat g_LighDir[] = { 1.0f, 0.0f, 0.0f, 0.0f }; 
-	GLfloat g_LightAmbient[] = { 0.1f, 0.1f, 0.1f, 1.0f };
-	GLfloat g_LightDiffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat g_LightAmbient[] = { 0.0f, 0.3f, 0.0f, 1.0f };
+	GLfloat g_LightDiffuse[] = { 0.0f, 1.0f, 0.0f, 1.0f };
 	GLfloat g_LightSpecular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	GLfloat g_LighAttenuation0 = 1.0f;
 	GLfloat g_LighAttenuation1 = 0.0f;

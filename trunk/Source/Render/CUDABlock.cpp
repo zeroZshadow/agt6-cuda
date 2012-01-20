@@ -7,7 +7,7 @@
 
 #include <cuda_gl_interop.h>
 
-extern "C" void launch_CreateCube(dim3 grid, dim3 threads, float3* aVertList, float3* aNormList, GLuint* aIndexList);
+extern "C" void launch_CreateCube(dim3 grid, dim3 threads, float3 aPos, float3* aVertList, float3* aNormList, GLuint* aIndexList);
 
 
 CUDABlock::CUDABlock()
@@ -62,8 +62,12 @@ CUDABlock::~CUDABlock()
 	m_FaceCount = 0;
 }
 
-void CUDABlock::Init()
+void CUDABlock::Init(float x, float y, float z)
 {
+	mPos.x = x;
+	mPos.y = y;
+	mPos.z = z;
+
 	//Create VBO's
 	glGenBuffersARB( 1, &m_VBO_Vertices );
 	glGenBuffersARB( 1, &m_VBO_Normals );
@@ -109,7 +113,9 @@ void CUDABlock::Build()
 
 	dim3 gridDim(8,8,1);
 	dim3 blockDim(4,4,32);
-	launch_CreateCube(gridDim, blockDim, cuda_Vertices, cuda_Normals, cuda_Indices);
+	float3 blockPos;
+	
+	launch_CreateCube(gridDim, blockDim, mPos, cuda_Vertices, cuda_Normals, cuda_Indices);
 
 	//Unmap
 	cutilSafeCall(cudaGraphicsUnmapResources(1, &cuda_VBO_Vertices, 0));

@@ -9,7 +9,7 @@ public:
 	CUDABlock();
 	~CUDABlock();
 
-	void Init();
+	void Init(float x, float y, float z);
 	void Build();
 	void Render();
 
@@ -30,6 +30,8 @@ public:
 	unsigned int m_FaceCount;
 
 	unsigned int m_Rank;
+
+	float3 mPos;
 
 	int m_X;
 	int m_Y;

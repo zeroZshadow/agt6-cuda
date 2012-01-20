@@ -22,9 +22,9 @@ CUDAMarcher::~CUDAMarcher()
 	m_BlockCount = 0;
 }
 
-void CUDAMarcher::Init(unsigned int aRank, int aCount)
+void CUDAMarcher::Init(int gridX, int gridY, int gridZ)
 {
-	m_BlockCount = aCount;
+	m_BlockCount = gridZ*gridY*gridX;
 	m_Blocks = new CUDABlock[m_BlockCount];
 
 	mCudaEdgeTable = 0;
@@ -53,9 +53,19 @@ void CUDAMarcher::Init(unsigned int aRank, int aCount)
 	free( perlin2 );
 	free( perlin3 );
 
-	for(unsigned int i=0; i<m_BlockCount; ++i)
+	//for(unsigned int i=0; i<m_BlockCount; ++i)
+	//{
+	//	m_Blocks[i].Init(i, 0 ,0);
+	//}
+	for (int x = 0; x < gridX; x++)
 	{
-		m_Blocks[i].Init();
+		for (int y = 0; y < gridY; y++)
+		{
+			for (int z = 0; z < gridZ; z++)
+			{
+				m_Blocks[(x * gridY * gridZ) + y * gridZ + z].Init(x,-y,z);
+			}
+		}
 	}
 }
 
@@ -66,6 +76,8 @@ void CUDAMarcher::BuildPerlinData(float* data1, float* data2, float* data3, unsi
 	//-- Quick and dirty pie
 #define PI				3.14159265358979323846264338327950288419716939937510582097494459072381640628620899862803482534211706798f
 	float	piDev				= PI * 5;
+	float	piDev2				= PI * 1;
+	float	piDev3				= PI * 0.1;
 #undef PI
 
 	for (int x = 0; x < rankSize; x++)
@@ -76,8 +88,8 @@ void CUDAMarcher::BuildPerlinData(float* data1, float* data2, float* data3, unsi
 			{
 				index = (x * (int)rankSize * (int)rankSize) + (y * (int)rankSize) + z;
 				data1[ index ] = mPerlin->Noise3((float)(x) / piDev,(float)(y) / piDev,(float)(z) / piDev);
-				data2[ index ] = mPerlin->Noise3((float)(x + rankSize*2) / piDev,(float)(y) / piDev,(float)(z) / piDev);
-				data3[ index ] = mPerlin->Noise3((float)(x + rankSize*4) / piDev,(float)(y) / piDev,(float)(z) / piDev);
+				data2[ index ] = mPerlin->Noise3((float)(x + rankSize*2) / piDev2,(float)(y) / piDev2,(float)(z) / piDev2);
+				data3[ index ] = mPerlin->Noise3((float)(x + rankSize*4) / piDev3,(float)(y) / piDev3,(float)(z) / piDev3);
 			}
 		}
 	}

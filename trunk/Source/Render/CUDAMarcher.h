@@ -10,7 +10,7 @@ public:
 	~CUDAMarcher();
 
 
-	void		Init(unsigned int aRank, int aCount);
+	void		Init(int gridX, int gridY, int gridZ);
 	void		Cubemarch();
 
 	void		Render();
@@ -34,4 +34,6 @@ protected:
 	float* mCudaPerlinDst1;
 	float* mCudaPerlinDst2;
 	float* mCudaPerlinDst3;
+
+	float* mCudaBlockPosition;
 };
