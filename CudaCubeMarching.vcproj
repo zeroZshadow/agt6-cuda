@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="CubeMarchingCuda"
 	ProjectGUID="{71F49F31-3A26-4F0E-9913-23BBEF1C3700}"
 	RootNamespace="CudaTest"
@@ -25,6 +25,7 @@
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="1"
+			ManagedExtensions="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -52,8 +53,8 @@
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;$(ProjectDir)inc\FreeGlut\&quot;;&quot;$(ProjectDir)inc\Glew\&quot;;&quot;$(ProjectDir)inc\Cg\&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
-				MinimalRebuild="true"
-				BasicRuntimeChecks="3"
+				MinimalRebuild="false"
+				BasicRuntimeChecks="0"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -75,6 +76,7 @@
 				AdditionalLibraryDirectories="&quot;$(CUDA_PATH)lib\Win32&quot;;&quot;$(ProjectDir)lib\FreeGlut\&quot;;&quot;$(ProjectDir)lib\Glew\&quot;;&quot;$(ProjectDir)lib\Cg\&quot;"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
+				AssemblyDebug="1"
 				SubSystem="1"
 				TargetMachine="1"
 			/>
@@ -183,6 +185,37 @@
 		</Configuration>
 	</Configurations>
 	<References>
+		<AssemblyReference
+			RelativePath="System.dll"
+			AssemblyName="System, Version=2.0.0.0, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL"
+			MinFrameworkVersion="131072"
+		/>
+		<AssemblyReference
+			RelativePath="System.Data.dll"
+			AssemblyName="System.Data, Version=2.0.0.0, PublicKeyToken=b77a5c561934e089, processorArchitecture=x86"
+			MinFrameworkVersion="131072"
+		/>
+		<AssemblyReference
+			RelativePath="System.Drawing.dll"
+			AssemblyName="System.Drawing, Version=2.0.0.0, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL"
+			MinFrameworkVersion="131072"
+		/>
+		<AssemblyReference
+			RelativePath="System.Windows.Forms.dll"
+			AssemblyName="System.Windows.Forms, Version=2.0.0.0, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL"
+			MinFrameworkVersion="131072"
+		/>
+		<AssemblyReference
+			RelativePath="System.XML.dll"
+			AssemblyName="System.Xml, Version=2.0.0.0, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL"
+			MinFrameworkVersion="131072"
+		/>
+		<ActiveXReference
+			ControlGUID="{0d452ee1-e08f-101a-852e-02608c4d0bb4}"
+			ControlVersion="2.0"
+			LocaleID="0"
+			WrapperTool="aximp"
+		/>
 	</References>
 	<Files>
 		<Filter
@@ -310,6 +343,14 @@
 			</File>
 		</Filter>
 		<Filter
+			Name="GUI"
+			>
+			<File
+				RelativePath=".\GUI.cpp"
+				>
+			</File>
+		</Filter>
+		<Filter
 			Name="Shaders"
 			>
 			<File
@@ -317,6 +358,15 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\GUI.h"
+			FileType="3"
+			>
+			<File
+				RelativePath=".\GUI.resx"
+				>
+			</File>
+		</File>
 		<File
 			RelativePath=".\Source\main.cpp"
 			>

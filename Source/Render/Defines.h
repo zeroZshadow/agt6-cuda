@@ -2,3 +2,4 @@
 
 
 #define PERLIN_DATA_RANK 33
+#define MARCHING_BLOCK_SIZE 32
