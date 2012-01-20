@@ -1,5 +1,7 @@
 #pragma once;
 
+#include "..\Misc\Effect.h"
+
 class CPUMarcher;
 class CUDAMarcher;
 class Camera;
@@ -21,12 +23,20 @@ protected:
 	~Renderer();
 
 	void				_InitOpenGL(int argc, char* argv[]);
+	void				_InitCg();
 	void				_InitWindow(unsigned int x, unsigned int y);
 	void				_InitLighting();
 	void				_Resize();
 
 	CPUMarcher*			mCPUMarcher;
 	CUDAMarcher*		mCUDAMarcher;
+
+	Effect*				m_Shader;
+	CGeffect			m_Effect;
+	CGtechnique			m_Technique;
+	CGpass				m_Pass;
+
+	CGparameter			m_Param_EyePosition;
 
 	Camera*				mCam;
 	

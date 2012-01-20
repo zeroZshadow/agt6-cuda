@@ -17,6 +17,8 @@
 #include "CUDAMarcher.h"
 #include "Camera.h"
 #include "..\Misc\Vector3.h"
+#include "..\Misc\CGManager.h"
+#include <Cg/cgGL.h>
 //-- Render End
 
 #include <cutil_inline.h>
@@ -52,6 +54,11 @@ void Renderer::Destory()
 Renderer::Renderer(int argc, char* argv[])
 {
 	_InitOpenGL(argc, argv);
+
+	//Setup Cg
+	_InitCg();
+
+	//Setup Marchers
 	mCPUMarcher = new CPUMarcher();
 	mCPUMarcher->Init(32,32,32);
 	mCPUMarcher->Cubemarch();
@@ -84,13 +91,13 @@ void Renderer::Render()
 
 	float pos[4] = {0,0,1,0};
 	glLightfv(GL_LIGHT0, GL_POSITION, pos);
+	cgGLSetParameter3fv(m_Param_EyePosition, mCam->Position);
 
-	float bla[4] = {0,0,1,0};
-
-	glLightfv(GL_LIGHT0, GL_POSITION, bla);
-
-	//mCPUMarcher->Render();
-	mCUDAMarcher->Render();
+	//Cg time!
+	cgSetPassState(m_Pass);
+		//mCPUMarcher->Render();
+		mCUDAMarcher->Render();
+	cgResetPassState(m_Pass);
 
 	glutSwapBuffers();
 	glutPostRedisplay();
@@ -123,7 +130,7 @@ void Renderer::_InitOpenGL(int argc, char* argv[])
 
 	//Opengl options
 	glutDisplayFunc(GLRenderCallback);
-	glClearColor(0,0,0,0);
+	glClearColor(0,1,0,0);
 	glShadeModel( GL_FLAT );
 	glEnable( GL_TEXTURE_2D );
 
@@ -161,6 +168,21 @@ void Renderer::_InitLighting()
 	glLightf( GL_LIGHT0, GL_CONSTANT_ATTENUATION, g_LighAttenuation0 );
 	glLightf( GL_LIGHT0, GL_LINEAR_ATTENUATION, g_LighAttenuation1 );
 	glLightf( GL_LIGHT0, GL_QUADRATIC_ATTENUATION, g_LighAttenuation2 );
+}
+
+void Renderer::_InitCg()
+{
+	CGManager::GetInstance()->Initialize();
+	m_Shader = CGManager::GetInstance()->LoadEffect("Assets/Shaders/TextureProjection.cgfx", "TextureProjection");
+	
+	m_Param_EyePosition  = m_Shader->GetParameter("gEyePosition");
+
+	m_Effect = m_Shader->GetEffect();
+	m_Technique = cgGetFirstTechnique(m_Effect);
+	if (!cgValidateTechnique(m_Technique)) {
+		printf("TECH IS BROKEN!\n");
+	}
+	m_Pass = cgGetFirstPass(m_Technique);
 }
 
 void Renderer::Resize(int w, int h)

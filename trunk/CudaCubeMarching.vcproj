@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="CubeMarchingCuda"
 	ProjectGUID="{71F49F31-3A26-4F0E-9913-23BBEF1C3700}"
 	RootNamespace="CudaTest"
@@ -50,7 +50,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)inc\FreeGlut\&quot;;&quot;$(ProjectDir)inc\Glew\&quot;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)inc\FreeGlut\&quot;;&quot;$(ProjectDir)inc\Glew\&quot;;&quot;$(ProjectDir)inc\Cg\&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -70,9 +70,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cudart.lib freeglut_d.lib glew32.lib cutil32D.lib"
+				AdditionalDependencies="cudart.lib freeglut_d.lib glew32.lib cutil32D.lib cg.lib cgGL.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(CUDA_PATH)lib\Win32&quot;;&quot;$(ProjectDir)lib\FreeGlut\&quot;;&quot;$(ProjectDir)lib\Glew\&quot;"
+				AdditionalLibraryDirectories="&quot;$(CUDA_PATH)lib\Win32&quot;;&quot;$(ProjectDir)lib\FreeGlut\&quot;;&quot;$(ProjectDir)lib\Glew\&quot;;&quot;$(ProjectDir)lib\Cg\&quot;"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -131,7 +131,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)inc\FreeGlut\&quot;;&quot;$(ProjectDir)inc\Glew\&quot;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)inc\FreeGlut\&quot;;&quot;$(ProjectDir)inc\Glew\&quot;;&quot;$(ProjectDir)inc\Cg\&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -150,9 +150,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cudart.lib freeglut.lib glew32.lib cutil32.lib"
+				AdditionalDependencies="cudart.lib freeglut.lib glew32.lib cutil32.lib cg.lib cgGL.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(CUDA_PATH)lib\Win32&quot;;&quot;$(ProjectDir)lib\FreeGlut\&quot;;&quot;$(ProjectDir)lib\Glew\&quot;"
+				AdditionalLibraryDirectories="&quot;$(CUDA_PATH)lib\Win32&quot;;&quot;$(ProjectDir)lib\FreeGlut\&quot;;&quot;$(ProjectDir)lib\Glew\&quot;;&quot;$(ProjectDir)lib\Cg\&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -205,6 +205,22 @@
 			Name="Misc"
 			>
 			<File
+				RelativePath=".\Source\Misc\CGManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Source\Misc\CGManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Source\Misc\Effect.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Source\Misc\Effect.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Source\Render\Geometry.h"
 				>
 			</File>
@@ -218,6 +234,14 @@
 			</File>
 			<File
 				RelativePath=".\Source\Misc\Perlin.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Source\Misc\Singleton.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Source\Misc\Singleton.inl"
 				>
 			</File>
 			<File
@@ -282,6 +306,14 @@
 			</File>
 			<File
 				RelativePath=".\Source\Render\Renderer.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Shaders"
+			>
+			<File
+				RelativePath=".\Assets\Shaders\TextureProjection.cgfx"
 				>
 			</File>
 		</Filter>

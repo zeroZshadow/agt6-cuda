@@ -1,0 +1,56 @@
+
+float3   gEyePosition;
+
+void VertexProg(float4 position : POSITION,
+                float3 normal   : NORMAL,
+
+                out float4 oPosition : POSITION,
+                out float3 objectPos : TEXCOORD0,
+                out float3 oNormal   : TEXCOORD1
+               )
+{
+	oPosition = mul(glstate.matrix.mvp, position);
+	objectPos = position.xyz;
+	oNormal = normal;
+}
+
+void FragmentProg(	float4 position  : TEXCOORD0,
+                    float3 normal    : TEXCOORD1,
+                    
+					out float4 color     : COLOR,
+					
+					uniform float3 eyePosition
+					)
+{
+	float3 P = position.xyz;
+	float3 N = normalize(normal);
+
+	float4 emissive = glstate.material.emission;
+	
+	float4 ambient = glstate.material.ambient;
+
+	float3 L = normalize(mul(float3x3(glstate.matrix.inverse.modelview[0]),glstate.light[0].position.xyz));
+	float diffuseLight = max(dot(L, N), 0);
+	float4 diffuse = glstate.material.diffuse * glstate.light[0].diffuse * diffuseLight;
+
+	float3 V = normalize(eyePosition - P);
+	float3 H = normalize(L + V);
+	float specularLight = pow(max(dot(H, N), 0), glstate.material.shininess);
+	if (diffuseLight <= 0) specularLight = 0;
+	float4 specular = glstate.material.specular * glstate.light[0].specular * specularLight;
+
+	color = emissive + ambient + diffuse;// + specular;
+	color.w = 1;
+}
+
+technique t0
+{
+	pass p0
+	{
+        VertexProgram = compile arbvp1 VertexProg();
+        FragmentProgram = compile arbfp1 FragmentProg( gEyePosition );
+
+        DepthTestEnable = true;
+		DepthMask = true;        
+	}
+}
