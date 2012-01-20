@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="CubeMarchingCuda"
 	ProjectGUID="{71F49F31-3A26-4F0E-9913-23BBEF1C3700}"
 	RootNamespace="CudaTest"
@@ -51,7 +51,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)inc\FreeGlut\&quot;;&quot;$(ProjectDir)inc\Glew\&quot;;&quot;$(ProjectDir)inc\Cg\&quot;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)inc\FreeGlut\&quot;;&quot;$(ProjectDir)inc\Glew\&quot;;&quot;$(ProjectDir)inc\Cg\&quot;;&quot;$(ProjectDir)inc\TinyImageLoader\&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="0"
@@ -71,9 +71,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cudart.lib freeglut_d.lib glew32.lib cutil32D.lib cg.lib cgGL.lib"
+				AdditionalDependencies="cudart.lib freeglut_d.lib glew32.lib cutil32D.lib cg.lib cgGL.lib TinyImageLoader_d.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(CUDA_PATH)lib\Win32&quot;;&quot;$(ProjectDir)lib\FreeGlut\&quot;;&quot;$(ProjectDir)lib\Glew\&quot;;&quot;$(ProjectDir)lib\Cg\&quot;"
+				AdditionalLibraryDirectories="&quot;$(CUDA_PATH)lib\Win32&quot;;&quot;$(ProjectDir)lib\FreeGlut\&quot;;&quot;$(ProjectDir)lib\Glew\&quot;;&quot;$(ProjectDir)lib\Cg\&quot;;&quot;$(ProjectDir)lib\TinyImageLoader\&quot;"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
@@ -152,7 +152,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cudart.lib freeglut.lib glew32.lib cutil32.lib cg.lib cgGL.lib"
+				AdditionalDependencies="cudart.lib freeglut.lib glew32.lib cutil32.lib cg.lib cgGL.lib TinyImageLoader.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(CUDA_PATH)lib\Win32&quot;;&quot;$(ProjectDir)lib\FreeGlut\&quot;;&quot;$(ProjectDir)lib\Glew\&quot;;&quot;$(ProjectDir)lib\Cg\&quot;"
 				GenerateDebugInformation="true"
@@ -364,6 +364,7 @@
 			>
 			<File
 				RelativePath=".\GUI.resx"
+				SubType="Designer"
 				>
 			</File>
 		</File>
