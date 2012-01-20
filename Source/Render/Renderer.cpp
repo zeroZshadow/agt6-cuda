@@ -21,6 +21,8 @@
 #include <Cg/cgGL.h>
 //-- Render End
 
+#include "TinyImageLoader.h"
+
 #include <cutil_inline.h>
 #include <cuda_gl_interop.h>
 
@@ -57,6 +59,9 @@ Renderer::Renderer(int argc, char* argv[])
 
 	//Setup Cg
 	_InitCg();
+
+	//Load Textures
+	_LoadTextures();
 
 	//Setup Marchers
 	mCPUMarcher = new CPUMarcher();
@@ -123,6 +128,9 @@ void Renderer::_InitOpenGL(int argc, char* argv[])
 		exit(-1);
 	}
 
+	//Setup TIL
+	til::TIL_Init();
+
 	//Setup CUDA
 	cutilChooseCudaDevice(argc, argv);
 	cudaGLSetGLDevice( cutGetMaxGflopsDeviceId() );
@@ -155,9 +163,9 @@ void Renderer::_InitLighting()
 	glEnable(GL_LIGHT0);
 
 	GLfloat g_LighDir[] = { 1.0f, 0.0f, 0.0f, 0.0f }; 
-	GLfloat g_LightAmbient[] = { 0.0f, 0.3f, 0.0f, 1.0f };
-	GLfloat g_LightDiffuse[] = { 0.0f, 1.0f, 0.0f, 1.0f };
-	GLfloat g_LightSpecular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat g_LightAmbient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+	GLfloat g_LightDiffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat g_LightSpecular[] = { 1.0f, 0.0f, 0.0f, 1.0f };
 	GLfloat g_LighAttenuation0 = 1.0f;
 	GLfloat g_LighAttenuation1 = 0.0f;
 	GLfloat g_LighAttenuation2 = 0.0f;
@@ -173,9 +181,12 @@ void Renderer::_InitLighting()
 void Renderer::_InitCg()
 {
 	CGManager::GetInstance()->Initialize();
-	m_Shader = CGManager::GetInstance()->LoadEffect("Assets/Shaders/TextureProjection.cgfx", "TextureProjection");
+	m_Shader = CGManager::GetInstance()->LoadEffect("./Assets/Shaders/TextureProjection.cgfx", "TextureProjection");
 	
 	m_Param_EyePosition  = m_Shader->GetParameter("gEyePosition");
+	m_Param_ProjSampler[0] = m_Shader->GetParameter("ProjSampler1");
+	m_Param_ProjSampler[1] = m_Shader->GetParameter("ProjSampler2");
+	m_Param_ProjSampler[2] = m_Shader->GetParameter("ProjSampler3");
 
 	m_Effect = m_Shader->GetEffect();
 	m_Technique = cgGetFirstTechnique(m_Effect);
@@ -183,6 +194,39 @@ void Renderer::_InitCg()
 		printf("TECH IS BROKEN!\n");
 	}
 	m_Pass = cgGetFirstPass(m_Technique);
+}
+
+void Renderer::_LoadTextures()
+{
+	til::Image* image[3];
+	image[0] = til::TIL_Load("./Assets/Textures/RoughSoil.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);
+	image[1] = til::TIL_Load("./Assets/Textures/SoilTop.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);
+	image[2] = til::TIL_Load("./Assets/Textures/RoughSoil.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);
+
+	glGenTextures(3, m_Textures);
+
+	for (unsigned int i = 0; i < 3; i++)
+	{
+		if(image[i]==0)
+		{
+			printf("> Could not load texture\n");
+			continue;
+		}
+		glBindTexture(GL_TEXTURE_2D, m_Textures[i]);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexImage2D(
+			GL_TEXTURE_2D, 0, GL_RGBA,
+			image[i]->GetPitchX(), image[i]->GetPitchY(),
+			0,
+			GL_RGBA, GL_UNSIGNED_BYTE, image[i]->GetPixels()
+		);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		cgGLSetupSampler(m_Param_ProjSampler[i], m_Textures[i]);
+	}
 }
 
 void Renderer::Resize(int w, int h)

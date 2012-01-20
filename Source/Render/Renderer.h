@@ -27,6 +27,7 @@ protected:
 	void				_InitWindow(unsigned int x, unsigned int y);
 	void				_InitLighting();
 	void				_Resize();
+	void				_LoadTextures();
 
 	CPUMarcher*			mCPUMarcher;
 	CUDAMarcher*		mCUDAMarcher;
@@ -36,7 +37,10 @@ protected:
 	CGtechnique			m_Technique;
 	CGpass				m_Pass;
 
+	unsigned int		m_Textures[3];
+
 	CGparameter			m_Param_EyePosition;
+	CGparameter			m_Param_ProjSampler[3];
 
 	Camera*				mCam;
 	

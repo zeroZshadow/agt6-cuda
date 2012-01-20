@@ -1,6 +1,30 @@
 
 float3   gEyePosition;
 
+float2 tex_scale = {1.0f,1.0f};
+
+texture ProjTexture1;
+texture ProjTexture2;
+texture ProjTexture3;
+sampler2D ProjSampler1 = sampler_state
+{
+    Texture = <diffuseTexture1>;
+    MinFilter = Linear;
+    MagFilter = Linear;
+};
+sampler2D ProjSampler2 = sampler_state
+{
+    Texture = <diffuseTexture2>;
+    MinFilter = Linear;
+    MagFilter = Linear;
+};
+sampler2D ProjSampler3 = sampler_state
+{
+    Texture = <diffuseTexture3>;
+    MinFilter = Linear;
+    MagFilter = Linear;
+};
+
 void VertexProg(float4 position : POSITION,
                 float3 normal   : NORMAL,
 
@@ -22,6 +46,7 @@ void FragmentProg(	float4 position  : TEXCOORD0,
 					uniform float3 eyePosition
 					)
 {
+	//Lighting
 	float3 P = position.xyz;
 	float3 N = normalize(normal);
 
@@ -38,8 +63,29 @@ void FragmentProg(	float4 position  : TEXCOORD0,
 	float specularLight = pow(max(dot(H, N), 0), glstate.material.shininess);
 	if (diffuseLight <= 0) specularLight = 0;
 	float4 specular = glstate.material.specular * glstate.light[0].specular * specularLight;
-
-	color = emissive + ambient + diffuse;// + specular;
+	
+	//Texture
+	float3 blend_weights = abs(N.xyz);
+	blend_weights = (blend_weights - 0.2) * 7;
+	blend_weights = max(blend_weights, 0);
+	blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z ).xxx;
+	
+	float4 blended_color;
+	float2 coord1 = P.yz * tex_scale;
+	float2 coord2 = P.zx * tex_scale;
+	float2 coord3 = P.xy * tex_scale;
+	
+	float4 col1 = tex2D(ProjSampler1, coord1);
+	float4 col2 = tex2D(ProjSampler2, coord2);
+	float4 col3 = tex2D(ProjSampler3, coord3);
+	
+	blended_color = col1.xyzw * blend_weights.xxxx +
+					col2.xyzw * blend_weights.yyyy +
+					col3.xyzw * blend_weights.zzzz;
+	
+	
+	//Combine
+	color = (emissive) + (ambient) + (blended_color*diffuse) + specular;
 	color.w = 1;
 }
 
