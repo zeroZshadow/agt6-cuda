@@ -17,12 +17,15 @@ public:
 	unsigned int m_VBO_Vertices;
 	unsigned int m_VBO_Normals;
 	unsigned int m_VBO_Indices;
+	unsigned int m_VBO_UVs;
 	cudaGraphicsResource *cuda_VBO_Vertices;
 	cudaGraphicsResource *cuda_VBO_Normals;
 	cudaGraphicsResource *cuda_VBO_Indices;
+	cudaGraphicsResource *cuda_VBO_UVs;
 	float3* cuda_Vertices;
 	float3* cuda_Normals;
 	unsigned int* cuda_Indices;
+	float2* cuda_UVs;
 
 	unsigned int m_FaceCount;
 
