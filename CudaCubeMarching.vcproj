@@ -229,10 +229,6 @@
 				RelativePath=".\Source\CudaFiles\Perlin.cu"
 				>
 			</File>
-			<File
-				RelativePath=".\Source\CudaFiles\TerrainGeneration.cu"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Misc"
