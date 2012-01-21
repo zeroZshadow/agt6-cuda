@@ -32,9 +32,4 @@ public:
 	unsigned int m_Rank;
 
 	float3 mPos;
-
-	int m_X;
-	int m_Y;
-	int m_Z;
-
 };

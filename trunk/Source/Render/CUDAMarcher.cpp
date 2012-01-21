@@ -6,6 +6,8 @@
 
 extern "C" void load_tables_as_textures(unsigned int** aEdgeTable, unsigned int** aTriTable, unsigned int** aNrVertsTable);
 extern "C" void load_perlin_data(float** aDstCuda1, float* aData1, float** aDstCuda2, float* aData2, float** aDstCuda3, float* aData3, unsigned int dataSize);
+extern "C" void host_PerlinInitialize(unsigned int nSeed);
+extern "C" void host_InitPerlinData(int rank);
 
 
 CUDAMarcher::CUDAMarcher()
@@ -38,6 +40,10 @@ void CUDAMarcher::Init(int gridX, int gridY, int gridZ)
 	load_tables_as_textures( &mCudaEdgeTable, &mCudaTriTable, &mCudaVertTable );
 
 	//-- Create and load perlin data
+#if 1
+	host_PerlinInitialize(0);
+	host_InitPerlinData(PERLIN_DATA_RANK);
+#else
 	float*	perlin1, *perlin2, *perlin3;
 	int		rank		= PERLIN_DATA_RANK;
 	int		perlinBlockSize		= rank * rank * rank;
@@ -52,6 +58,7 @@ void CUDAMarcher::Init(int gridX, int gridY, int gridZ)
 	free( perlin1 );
 	free( perlin2 );
 	free( perlin3 );
+#endif
 
 	//for(unsigned int i=0; i<m_BlockCount; ++i)
 	//{

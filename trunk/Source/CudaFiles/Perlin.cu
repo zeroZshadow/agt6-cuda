@@ -1,4 +1,4 @@
-#include "cutil_math.h"
+/*#include "cutil_math.h"
 
 // Data
 #define SIZE 256
@@ -11,8 +11,8 @@ __constant__ float gx[SIZE];
 __constant__ float gy[SIZE];
 __constant__ float gz[SIZE];
 
-
-__host__ void Initialize(unsigned int nSeed)
+extern "C"
+void host_PerlinInitialize(unsigned int nSeed)
 {
 	int i, j, nSwap;
 
@@ -183,3 +183,4 @@ __device__ float Noise3(float x, float y, float z)
 
 	return v;	
 }
+*/
