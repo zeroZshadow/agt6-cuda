@@ -64,13 +64,17 @@ Renderer::Renderer(int argc, char* argv[])
 	_LoadTextures();
 
 	//Setup Marchers
-	mCPUMarcher = new CPUMarcher();
-	mCPUMarcher->Init(32,32,32);
-	mCPUMarcher->Cubemarch();
+	//mCPUMarcher = new CPUMarcher();
+	//mCPUMarcher->Init(32,32,32);
+	//mCPUMarcher->Cubemarch();
 
+	int now = timeGetTime();
 	mCUDAMarcher = new CUDAMarcher();
 	mCUDAMarcher->Init(2, 2, 2); //Rank, Blockcount
 	mCUDAMarcher->Cubemarch();
+	int result = timeGetTime() - now;
+
+	printf("> Created terrain, took %i ms\n", result);
 
 
 	mCam = new Camera();
@@ -153,7 +157,7 @@ void Renderer::_InitOpenGL(int argc, char* argv[])
 void Renderer::_InitWindow(unsigned int x, unsigned int y)
 {
 	glutInitWindowSize(x,y);
-	glutCreateWindow("Martijn Gerkers - Chris Hekman");
+	glutCreateWindow("Martijn Gerkes - Chris Hekman");
 	glutReshapeFunc(GLResize);
 }
 
@@ -164,8 +168,8 @@ void Renderer::_InitLighting()
 
 	GLfloat g_LighDir[] = { 1.0f, 0.0f, 0.0f, 0.0f }; 
 	GLfloat g_LightAmbient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
-	GLfloat g_LightDiffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	GLfloat g_LightSpecular[] = { 1.0f, 0.0f, 0.0f, 1.0f };
+	GLfloat g_LightDiffuse[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+	GLfloat g_LightSpecular[] = { 0.1f, 0.1f, 0.1f, 1.0f };
 	GLfloat g_LighAttenuation0 = 1.0f;
 	GLfloat g_LighAttenuation1 = 0.0f;
 	GLfloat g_LighAttenuation2 = 0.0f;
@@ -176,6 +180,8 @@ void Renderer::_InitLighting()
 	glLightf( GL_LIGHT0, GL_CONSTANT_ATTENUATION, g_LighAttenuation0 );
 	glLightf( GL_LIGHT0, GL_LINEAR_ATTENUATION, g_LighAttenuation1 );
 	glLightf( GL_LIGHT0, GL_QUADRATIC_ATTENUATION, g_LighAttenuation2 );
+
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 0.5f );
 }
 
 void Renderer::_InitCg()
@@ -199,9 +205,9 @@ void Renderer::_InitCg()
 void Renderer::_LoadTextures()
 {
 	til::Image* image[3];
-	image[0] = til::TIL_Load("./Assets/Textures/RoughSoil.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);
-	image[1] = til::TIL_Load("./Assets/Textures/SoilTop.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);
-	image[2] = til::TIL_Load("./Assets/Textures/RoughSoil.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);
+	image[0] = til::TIL_Load("./Assets/Textures/FloorsRegular.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);	//Side
+	image[1] = til::TIL_Load("./Assets/Textures/LeavesDead.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);		//Top
+	image[2] = til::TIL_Load("./Assets/Textures/FloorsRegular.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);	//Side
 
 	glGenTextures(3, m_Textures);
 

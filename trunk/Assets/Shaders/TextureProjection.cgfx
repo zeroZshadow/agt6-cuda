@@ -1,7 +1,8 @@
 
-float3   gEyePosition;
+float3 gEyePosition;
+float3 gBlockPosition;
 
-float2 tex_scale = {1.0f,1.0f};
+float2 tex_scale = {0.5f,0.5f};
 
 texture ProjTexture1;
 texture ProjTexture2;
@@ -9,19 +10,19 @@ texture ProjTexture3;
 sampler2D ProjSampler1 = sampler_state
 {
     Texture = <diffuseTexture1>;
-    MinFilter = Linear;
+    MinFilter = LinearMipMapNearest;
     MagFilter = Linear;
 };
 sampler2D ProjSampler2 = sampler_state
 {
     Texture = <diffuseTexture2>;
-    MinFilter = Linear;
+    MinFilter = LinearMipMapNearest;
     MagFilter = Linear;
 };
 sampler2D ProjSampler3 = sampler_state
 {
     Texture = <diffuseTexture3>;
-    MinFilter = Linear;
+    MinFilter = LinearMipMapNearest;
     MagFilter = Linear;
 };
 
@@ -43,7 +44,8 @@ void FragmentProg(	float4 position  : TEXCOORD0,
                     
 					out float4 color     : COLOR,
 					
-					uniform float3 eyePosition
+					uniform float3 eyePosition,
+					uniform float3 blockPosition
 					)
 {
 	//Lighting
@@ -52,17 +54,17 @@ void FragmentProg(	float4 position  : TEXCOORD0,
 
 	float4 emissive = glstate.material.emission;
 	
-	float4 ambient = glstate.material.ambient;
+	float4 ambient = glstate.lightmodel.ambient;
 
 	float3 L = normalize(mul(float3x3(glstate.matrix.inverse.modelview[0]),glstate.light[0].position.xyz));
 	float diffuseLight = max(dot(L, N), 0);
-	float4 diffuse = glstate.material.diffuse * glstate.light[0].diffuse * diffuseLight;
+	float4 diffuse = glstate.light[0].diffuse * diffuseLight;
 
 	float3 V = normalize(eyePosition - P);
 	float3 H = normalize(L + V);
 	float specularLight = pow(max(dot(H, N), 0), glstate.material.shininess);
 	if (diffuseLight <= 0) specularLight = 0;
-	float4 specular = glstate.material.specular * glstate.light[0].specular * specularLight;
+	float4 specular = glstate.light[0].specular * specularLight;
 	
 	//Texture
 	float3 blend_weights = abs(N.xyz);
@@ -83,7 +85,6 @@ void FragmentProg(	float4 position  : TEXCOORD0,
 					col2.xyzw * blend_weights.yyyy +
 					col3.xyzw * blend_weights.zzzz;
 	
-	
 	//Combine
 	color = (emissive) + (ambient) + (blended_color*diffuse) + specular;
 	color.w = 1;
@@ -94,7 +95,7 @@ technique t0
 	pass p0
 	{
         VertexProgram = compile arbvp1 VertexProg();
-        FragmentProgram = compile arbfp1 FragmentProg( gEyePosition );
+        FragmentProgram = compile arbfp1 FragmentProg( gEyePosition, gBlockPosition );
 
         DepthTestEnable = true;
 		DepthMask = true;        
