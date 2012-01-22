@@ -81,7 +81,8 @@ namespace CudaTest {
 	private: System::Windows::Forms::TrackBar^  WeightBar2;
 
 	private: System::Windows::Forms::TrackBar^  WeightBar1;
-	private: System::Windows::Forms::TrackBar^  TerrainSize;
+	private: System::Windows::Forms::TrackBar^  IsoValue;
+
 	private: System::Windows::Forms::Label^  label11;
 
 
@@ -129,7 +130,7 @@ namespace CudaTest {
 			this->WeightBar1 = (gcnew System::Windows::Forms::TrackBar());
 			this->NoiseBar2 = (gcnew System::Windows::Forms::TrackBar());
 			this->NoiseBar1 = (gcnew System::Windows::Forms::TrackBar());
-			this->TerrainSize = (gcnew System::Windows::Forms::TrackBar());
+			this->IsoValue = (gcnew System::Windows::Forms::TrackBar());
 			this->label11 = (gcnew System::Windows::Forms::Label());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->FloorBar))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->SphereBar))->BeginInit();
@@ -141,7 +142,7 @@ namespace CudaTest {
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->WeightBar1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->NoiseBar2))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->NoiseBar1))->BeginInit();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->TerrainSize))->BeginInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->IsoValue))->BeginInit();
 			this->SuspendLayout();
 			// 
 			// Ticker
@@ -177,7 +178,7 @@ namespace CudaTest {
 			this->FloorBar->Size = System::Drawing::Size(204, 45);
 			this->FloorBar->TabIndex = 9;
 			this->FloorBar->TickFrequency = 10;
-			this->FloorBar->Value = 500;
+			this->FloorBar->Value = 100;
 			// 
 			// comboBox1
 			// 
@@ -206,7 +207,7 @@ namespace CudaTest {
 			this->SphereBar->Size = System::Drawing::Size(206, 45);
 			this->SphereBar->TabIndex = 9;
 			this->SphereBar->TickFrequency = 10;
-			this->SphereBar->Value = 400;
+			this->SphereBar->Value = 600;
 			// 
 			// groupBox1
 			// 
@@ -377,24 +378,25 @@ namespace CudaTest {
 			this->NoiseBar1->TickFrequency = 10;
 			this->NoiseBar1->Value = 400;
 			// 
-			// TerrainSize
+			// IsoValue
 			// 
-			this->TerrainSize->Location = System::Drawing::Point(18, 428);
-			this->TerrainSize->Minimum = 1;
-			this->TerrainSize->Name = L"TerrainSize";
-			this->TerrainSize->Size = System::Drawing::Size(415, 45);
-			this->TerrainSize->TabIndex = 9;
-			this->TerrainSize->Value = 2;
-			this->TerrainSize->Scroll += gcnew System::EventHandler(this, &GUI::TerrainSize_Scroll_1);
+			this->IsoValue->Location = System::Drawing::Point(18, 428);
+			this->IsoValue->Maximum = 1000;
+			this->IsoValue->Minimum = 1;
+			this->IsoValue->Name = L"IsoValue";
+			this->IsoValue->Size = System::Drawing::Size(415, 45);
+			this->IsoValue->TabIndex = 9;
+			this->IsoValue->Value = 500;
+			this->IsoValue->Scroll += gcnew System::EventHandler(this, &GUI::TerrainSize_Scroll_1);
 			// 
 			// label11
 			// 
 			this->label11->AutoSize = true;
 			this->label11->Location = System::Drawing::Point(15, 412);
 			this->label11->Name = L"label11";
-			this->label11->Size = System::Drawing::Size(63, 13);
+			this->label11->Size = System::Drawing::Size(50, 13);
 			this->label11->TabIndex = 5;
-			this->label11->Text = L"Terrain Size";
+			this->label11->Text = L"Iso value";
 			// 
 			// GUI
 			// 
@@ -405,7 +407,7 @@ namespace CudaTest {
 			this->Controls->Add(this->label11);
 			this->Controls->Add(this->groupBox1);
 			this->Controls->Add(this->button1);
-			this->Controls->Add(this->TerrainSize);
+			this->Controls->Add(this->IsoValue);
 			this->Name = L"GUI";
 			this->StartPosition = System::Windows::Forms::FormStartPosition::CenterScreen;
 			this->Text = L"GUI";
@@ -421,7 +423,7 @@ namespace CudaTest {
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->WeightBar1))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->NoiseBar2))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->NoiseBar1))->EndInit();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->TerrainSize))->EndInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->IsoValue))->EndInit();
 			this->ResumeLayout(false);
 			this->PerformLayout();
 
@@ -459,7 +461,8 @@ namespace CudaTest {
 				 genInfo.prlnNoise3 = QUICK_RANGE_MAP( (float)NoiseBar3->Maximum - (float)NoiseBar3->Value, 0.f, (float)NoiseBar3->Maximum, PERLIN_NOISE_RANGE_MIN, PERLIN_NOISE_RANGE_MAX) ;
 				 genInfo.prlnNoise4 = 0;//QUICK_RANGE_MAP( (float)FloorBar->Value, 0.f, 100.f, FLOOR_GEN_RANGE_MIN, FLOOR_GEN_RANGE_MAX) ;
 				
-				 genInfo.gridRank = TerrainSize->Value;
+				 genInfo.iso = QUICK_RANGE_MAP( (float)IsoValue->Value, 0.f, (float)IsoValue->Maximum, -20.0f, 20.0f) ;
+
 				generateTerrain(genInfo);
 			 }
 

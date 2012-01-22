@@ -74,10 +74,10 @@ struct GenerateInfo
 #define PERLIN_NOISE_RANGE_MAX 50.f
 
 #define SPHERE_GEN_RANGE_MIN 200.0f
-#define SPHERE_GEN_RANGE_MAX 680.0f
+#define SPHERE_GEN_RANGE_MAX 6080.0f
 
-#define FLOOR_GEN_RANGE_MIN 0.50f
-#define FLOOR_GEN_RANGE_MAX 2.0f
+#define FLOOR_GEN_RANGE_MIN 0.001f
+#define FLOOR_GEN_RANGE_MAX 0.5f
 
 #define QUICK_RANGE_MAP(x, minA, maxA, minB, maxB) (    ((x-minA) * ((maxB - minB) / (maxA - minA)) + minB)    )
 
