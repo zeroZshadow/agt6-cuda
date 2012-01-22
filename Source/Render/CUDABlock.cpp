@@ -8,7 +8,7 @@
 #include <cuda_gl_interop.h>
 
 extern "C" void launch_CreateCube(GenerateInfo* agInfo, dim3 grid, dim3 threads, float3 aPos, float3* aVertList, float3* aNormList, GLuint* aIndexList);
-extern "C" void host_CreatePerlinData(dim3 grid, dim3 threads, float3 pos, int rank);
+extern "C" void host_CreatePerlinData(GenerateInfo* agInfo, dim3 grid, dim3 threads, float3 pos, int rank);
 
 CUDABlock::CUDABlock()
 {
@@ -110,7 +110,7 @@ void CUDABlock::Build(GenerateInfo* agInfo)
 	dim3 PerlingridDim(17,17,1);
 	dim3 PerlinblockDim(2,2,34);
 		
-	host_CreatePerlinData(PerlingridDim, PerlinblockDim, mPos, 33);
+	host_CreatePerlinData(agInfo, PerlingridDim, PerlinblockDim, mPos, 33);
 	launch_CreateCube(agInfo, gridDim, blockDim, mPos, cuda_Vertices, cuda_Normals, cuda_Indices);
 
 	//Unmap

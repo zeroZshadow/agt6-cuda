@@ -222,7 +222,6 @@ void CPUMarcher::Render()
 				}
 			}
 		}
-		
 	}
 	glEnd();
 

@@ -61,7 +61,7 @@ namespace CudaTest {
 
 	private: System::Windows::Forms::GroupBox^  groupBox1;
 	private: System::Windows::Forms::GroupBox^  groupBox2;
-	private: System::Windows::Forms::ComboBox^  comboBox2;
+
 	private: System::Windows::Forms::Label^  label5;
 	private: System::Windows::Forms::Label^  label4;
 	private: System::Windows::Forms::Label^  label1;
@@ -81,6 +81,8 @@ namespace CudaTest {
 	private: System::Windows::Forms::TrackBar^  WeightBar2;
 
 	private: System::Windows::Forms::TrackBar^  WeightBar1;
+	private: System::Windows::Forms::TrackBar^  TerrainSize;
+	private: System::Windows::Forms::Label^  label11;
 
 
 
@@ -113,7 +115,6 @@ namespace CudaTest {
 			this->SphereBar = (gcnew System::Windows::Forms::TrackBar());
 			this->groupBox1 = (gcnew System::Windows::Forms::GroupBox());
 			this->groupBox2 = (gcnew System::Windows::Forms::GroupBox());
-			this->comboBox2 = (gcnew System::Windows::Forms::ComboBox());
 			this->label7 = (gcnew System::Windows::Forms::Label());
 			this->label6 = (gcnew System::Windows::Forms::Label());
 			this->label10 = (gcnew System::Windows::Forms::Label());
@@ -128,6 +129,8 @@ namespace CudaTest {
 			this->WeightBar1 = (gcnew System::Windows::Forms::TrackBar());
 			this->NoiseBar2 = (gcnew System::Windows::Forms::TrackBar());
 			this->NoiseBar1 = (gcnew System::Windows::Forms::TrackBar());
+			this->TerrainSize = (gcnew System::Windows::Forms::TrackBar());
+			this->label11 = (gcnew System::Windows::Forms::Label());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->FloorBar))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->SphereBar))->BeginInit();
 			this->groupBox1->SuspendLayout();
@@ -138,6 +141,7 @@ namespace CudaTest {
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->WeightBar1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->NoiseBar2))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->NoiseBar1))->BeginInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->TerrainSize))->BeginInit();
 			this->SuspendLayout();
 			// 
 			// Ticker
@@ -148,7 +152,7 @@ namespace CudaTest {
 			// 
 			// button1
 			// 
-			this->button1->Location = System::Drawing::Point(12, 444);
+			this->button1->Location = System::Drawing::Point(12, 479);
 			this->button1->Name = L"button1";
 			this->button1->Size = System::Drawing::Size(428, 26);
 			this->button1->TabIndex = 3;
@@ -218,7 +222,6 @@ namespace CudaTest {
 			// 
 			// groupBox2
 			// 
-			this->groupBox2->Controls->Add(this->comboBox2);
 			this->groupBox2->Controls->Add(this->label7);
 			this->groupBox2->Controls->Add(this->label6);
 			this->groupBox2->Controls->Add(this->label10);
@@ -240,20 +243,10 @@ namespace CudaTest {
 			this->groupBox2->TabStop = false;
 			this->groupBox2->Text = L"Sampling";
 			// 
-			// comboBox2
-			// 
-			this->comboBox2->FormattingEnabled = true;
-			this->comboBox2->Items->AddRange(gcnew cli::array< System::Object^  >(2) {L"Premade Perlin", L"Perlin (slow)"});
-			this->comboBox2->Location = System::Drawing::Point(6, 20);
-			this->comboBox2->Name = L"comboBox2";
-			this->comboBox2->Size = System::Drawing::Size(248, 21);
-			this->comboBox2->TabIndex = 0;
-			this->comboBox2->Text = L"Premade Perlin";
-			// 
 			// label7
 			// 
 			this->label7->AutoSize = true;
-			this->label7->Location = System::Drawing::Point(201, 194);
+			this->label7->Location = System::Drawing::Point(202, 166);
 			this->label7->Name = L"label7";
 			this->label7->Size = System::Drawing::Size(43, 13);
 			this->label7->TabIndex = 5;
@@ -262,7 +255,7 @@ namespace CudaTest {
 			// label6
 			// 
 			this->label6->AutoSize = true;
-			this->label6->Location = System::Drawing::Point(3, 194);
+			this->label6->Location = System::Drawing::Point(4, 166);
 			this->label6->Name = L"label6";
 			this->label6->Size = System::Drawing::Size(53, 13);
 			this->label6->TabIndex = 5;
@@ -271,7 +264,7 @@ namespace CudaTest {
 			// label10
 			// 
 			this->label10->AutoSize = true;
-			this->label10->Location = System::Drawing::Point(257, 146);
+			this->label10->Location = System::Drawing::Point(258, 118);
 			this->label10->Name = L"label10";
 			this->label10->Size = System::Drawing::Size(41, 13);
 			this->label10->TabIndex = 5;
@@ -280,7 +273,7 @@ namespace CudaTest {
 			// label5
 			// 
 			this->label5->AutoSize = true;
-			this->label5->Location = System::Drawing::Point(3, 146);
+			this->label5->Location = System::Drawing::Point(4, 118);
 			this->label5->Name = L"label5";
 			this->label5->Size = System::Drawing::Size(84, 13);
 			this->label5->TabIndex = 5;
@@ -289,7 +282,7 @@ namespace CudaTest {
 			// label9
 			// 
 			this->label9->AutoSize = true;
-			this->label9->Location = System::Drawing::Point(257, 95);
+			this->label9->Location = System::Drawing::Point(258, 67);
 			this->label9->Name = L"label9";
 			this->label9->Size = System::Drawing::Size(41, 13);
 			this->label9->TabIndex = 5;
@@ -298,7 +291,7 @@ namespace CudaTest {
 			// label4
 			// 
 			this->label4->AutoSize = true;
-			this->label4->Location = System::Drawing::Point(3, 95);
+			this->label4->Location = System::Drawing::Point(4, 67);
 			this->label4->Name = L"label4";
 			this->label4->Size = System::Drawing::Size(84, 13);
 			this->label4->TabIndex = 5;
@@ -307,7 +300,7 @@ namespace CudaTest {
 			// label8
 			// 
 			this->label8->AutoSize = true;
-			this->label8->Location = System::Drawing::Point(257, 44);
+			this->label8->Location = System::Drawing::Point(258, 16);
 			this->label8->Name = L"label8";
 			this->label8->Size = System::Drawing::Size(41, 13);
 			this->label8->TabIndex = 5;
@@ -316,7 +309,7 @@ namespace CudaTest {
 			// label1
 			// 
 			this->label1->AutoSize = true;
-			this->label1->Location = System::Drawing::Point(3, 44);
+			this->label1->Location = System::Drawing::Point(4, 16);
 			this->label1->Name = L"label1";
 			this->label1->Size = System::Drawing::Size(84, 13);
 			this->label1->TabIndex = 5;
@@ -324,7 +317,7 @@ namespace CudaTest {
 			// 
 			// WeightBar3
 			// 
-			this->WeightBar3->Location = System::Drawing::Point(260, 162);
+			this->WeightBar3->Location = System::Drawing::Point(254, 134);
 			this->WeightBar3->Maximum = 100;
 			this->WeightBar3->Name = L"WeightBar3";
 			this->WeightBar3->Size = System::Drawing::Size(168, 45);
@@ -333,7 +326,7 @@ namespace CudaTest {
 			// 
 			// WeightBar2
 			// 
-			this->WeightBar2->Location = System::Drawing::Point(260, 111);
+			this->WeightBar2->Location = System::Drawing::Point(254, 83);
 			this->WeightBar2->Maximum = 100;
 			this->WeightBar2->Name = L"WeightBar2";
 			this->WeightBar2->Size = System::Drawing::Size(168, 45);
@@ -342,7 +335,7 @@ namespace CudaTest {
 			// 
 			// NoiseBar3
 			// 
-			this->NoiseBar3->Location = System::Drawing::Point(6, 162);
+			this->NoiseBar3->Location = System::Drawing::Point(7, 134);
 			this->NoiseBar3->Maximum = 100;
 			this->NoiseBar3->Name = L"NoiseBar3";
 			this->NoiseBar3->Size = System::Drawing::Size(248, 45);
@@ -351,7 +344,7 @@ namespace CudaTest {
 			// 
 			// WeightBar1
 			// 
-			this->WeightBar1->Location = System::Drawing::Point(260, 60);
+			this->WeightBar1->Location = System::Drawing::Point(254, 32);
 			this->WeightBar1->Maximum = 100;
 			this->WeightBar1->Name = L"WeightBar1";
 			this->WeightBar1->Size = System::Drawing::Size(168, 45);
@@ -360,7 +353,7 @@ namespace CudaTest {
 			// 
 			// NoiseBar2
 			// 
-			this->NoiseBar2->Location = System::Drawing::Point(6, 111);
+			this->NoiseBar2->Location = System::Drawing::Point(7, 83);
 			this->NoiseBar2->Maximum = 100;
 			this->NoiseBar2->Name = L"NoiseBar2";
 			this->NoiseBar2->Size = System::Drawing::Size(248, 45);
@@ -369,20 +362,41 @@ namespace CudaTest {
 			// 
 			// NoiseBar1
 			// 
-			this->NoiseBar1->Location = System::Drawing::Point(6, 60);
+			this->NoiseBar1->Location = System::Drawing::Point(7, 32);
 			this->NoiseBar1->Maximum = 100;
 			this->NoiseBar1->Name = L"NoiseBar1";
 			this->NoiseBar1->Size = System::Drawing::Size(248, 45);
 			this->NoiseBar1->TabIndex = 9;
 			// 
+			// TerrainSize
+			// 
+			this->TerrainSize->Location = System::Drawing::Point(18, 428);
+			this->TerrainSize->Minimum = 1;
+			this->TerrainSize->Name = L"TerrainSize";
+			this->TerrainSize->Size = System::Drawing::Size(415, 45);
+			this->TerrainSize->TabIndex = 9;
+			this->TerrainSize->Value = 2;
+			this->TerrainSize->Scroll += gcnew System::EventHandler(this, &GUI::TerrainSize_Scroll_1);
+			// 
+			// label11
+			// 
+			this->label11->AutoSize = true;
+			this->label11->Location = System::Drawing::Point(15, 412);
+			this->label11->Name = L"label11";
+			this->label11->Size = System::Drawing::Size(63, 13);
+			this->label11->TabIndex = 5;
+			this->label11->Text = L"Terrain Size";
+			// 
 			// GUI
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(451, 482);
+			this->ClientSize = System::Drawing::Size(451, 517);
 			this->Controls->Add(this->groupBox2);
+			this->Controls->Add(this->label11);
 			this->Controls->Add(this->groupBox1);
 			this->Controls->Add(this->button1);
+			this->Controls->Add(this->TerrainSize);
 			this->Name = L"GUI";
 			this->StartPosition = System::Windows::Forms::FormStartPosition::CenterScreen;
 			this->Text = L"GUI";
@@ -398,7 +412,9 @@ namespace CudaTest {
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->WeightBar1))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->NoiseBar2))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->NoiseBar1))->EndInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->TerrainSize))->EndInit();
 			this->ResumeLayout(false);
+			this->PerformLayout();
 
 		}
 #pragma endregion
@@ -421,14 +437,6 @@ namespace CudaTest {
 					genInfo.genType = GM_CAVES;
 				 }
 
-				 if (comboBox1->Text == "Perlin Premade")
-				 {
-					 genInfo.sampleType = SM_PREMADE;
-				 }
-				 else
-				 {
-					 genInfo.sampleType = SM_PERLIN;
-				 }
 
 				 float test1 = 15;
 				 float test2 = QUICK_RANGE_MAP(test1, 10.f, 20.0f, 2.0f, 4.0f);
@@ -445,10 +453,15 @@ namespace CudaTest {
 				 genInfo.prlnNoise2 = QUICK_RANGE_MAP( 100.0f - (float)NoiseBar2->Value, 0.f, 100.f, PERLIN_NOISE_RANGE_MIN, PERLIN_NOISE_RANGE_MAX) ;
 				 genInfo.prlnNoise3 = QUICK_RANGE_MAP( 100.0f - (float)NoiseBar3->Value, 0.f, 100.f, PERLIN_NOISE_RANGE_MIN, PERLIN_NOISE_RANGE_MAX) ;
 				 genInfo.prlnNoise4 = 0;//QUICK_RANGE_MAP( (float)FloorBar->Value, 0.f, 100.f, FLOOR_GEN_RANGE_MIN, FLOOR_GEN_RANGE_MAX) ;
-			 
+				
+				 genInfo.gridRank = TerrainSize->Value;
 				generateTerrain(genInfo);
 			 }
 
 
+private: System::Void TerrainSize_Scroll(System::Object^  sender, System::EventArgs^  e) {
+		 }
+private: System::Void TerrainSize_Scroll_1(System::Object^  sender, System::EventArgs^  e) {
+		 }
 };
 }
