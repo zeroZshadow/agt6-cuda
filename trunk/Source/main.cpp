@@ -12,6 +12,7 @@
 
 //-- GUI
 #include "../GUI.h"
+#include "Render/Defines.h"
 
 Camera* _cam;
 Renderer* _render;
@@ -80,4 +81,10 @@ void updateProgram()
 	CheckControlls(elapsedTime);	
 
 	cutilDeviceReset();
+}
+
+void generateTerrain(GenerateInfo agInfo)
+{
+	_render->GenerateTerrain(agInfo);
+
 }

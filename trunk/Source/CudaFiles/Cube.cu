@@ -57,49 +57,41 @@ void load_tables_as_textures(unsigned int** aEdgeTable, unsigned int** aTriTable
     cutilSafeCall(cudaBindTexture(0, tTriTex, *aTriTable, channelDesc) );
 }
 
-extern "C"
-void load_perlin_data(float** aDstCuda1, float* aData1, float** aDstCuda2, float* aData2, float** aDstCuda3, float* aData3, unsigned int dataSize)
-{
-	cudaChannelFormatDesc cD = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
 
-	// allocate data as textures
-    cutilSafeCall(cudaMalloc((void**) aDstCuda1, dataSize*sizeof(float)));
-    cutilSafeCall(cudaMemcpy((void*)* aDstCuda1, (void *)aData1, dataSize*sizeof(float), cudaMemcpyHostToDevice) );
-	cutilSafeCall(cudaBindTexture(0, tPerlin1, *aDstCuda1, cD) );
-
-    cutilSafeCall(cudaMalloc((void**) aDstCuda2, dataSize*sizeof(float)));
-    cutilSafeCall(cudaMemcpy((void*)* aDstCuda2, (void *)aData2, dataSize*sizeof(float), cudaMemcpyHostToDevice) );
-    cutilSafeCall(cudaBindTexture(0, tPerlin2, *aDstCuda2, cD) );
-
-    cutilSafeCall(cudaMalloc((void**) aDstCuda3, dataSize*sizeof(float)));
-    cutilSafeCall(cudaMemcpy((void*)* aDstCuda3, (void *)aData3, dataSize*sizeof(float), cudaMemcpyHostToDevice) );
-    cutilSafeCall(cudaBindTexture(0, tPerlin3, *aDstCuda2, cD) );
-}
-
-__device__ float SampleData1( int3 pos )
+__device__ float SampleData1( uint3 pos )
 {
     unsigned int i = (pos.z*PERLIN_DATA_SIZE*PERLIN_DATA_SIZE) + (pos.y*PERLIN_DATA_SIZE) + pos.x;
     return tex1Dfetch(tPerlin1, i);
 }
 
-__device__ float SampleData2( int3 pos )
+__device__ float SampleData2( uint3 pos )
 {
 	unsigned int i = (pos.z*PERLIN_DATA_SIZE*PERLIN_DATA_SIZE) + (pos.y*PERLIN_DATA_SIZE) + pos.x;
     return tex1Dfetch(tPerlin2, i);
 }
 
-__device__ float SampleData3( int3 pos )
+__device__ float SampleData3( uint3 pos )
 {
     unsigned int i = (pos.z*PERLIN_DATA_SIZE*PERLIN_DATA_SIZE) + (pos.y*PERLIN_DATA_SIZE) + pos.x;
     return tex1Dfetch(tPerlin3, i);
 }
 
+__device__ float DensityCaves( uint3 pos)
+{
+	return SampleData1( pos );
+}
 
-__device__ float DensityWithFloor( int3 pos, float floorMultiplier)
+__device__ float DensityWithFloor( uint3 pos, float floor)
 {
 	return SampleData1( pos ) + SampleData2( pos ) * 0.1f + SampleData3( pos ) * 0.05f;// - (pos.y * floorMultiplier);
 }
 
+__device__ float DensitySphere( uint3 pos, float radius)
+{
+	float dens = length( make_float3(pos) - make_float3(32,32,32));
+	dens = 3 - dens/9;
+	return SampleData1( pos ) + SampleData2( pos ) * 0.25f + SampleData3( pos ) * 0.1f + dens;
+}
 
 __device__
 float3 InterpVertexPos(float3 p0, float3 p1, float f0, float f1)
@@ -135,7 +127,8 @@ __global__ void cuda_CreatePerlin(float3 pos, int rank, float* aPerlin1, float* 
 	aPerlin3[voxel] = Noise3((index.x+rank*4) / piDev3, index.y / piDev3, index.z / piDev3);
 }
 
-__global__ void cuda_CreateCube(float3 pos, float3* aVertList, float3* aNormList, unsigned int* aIndexList)
+__global__ void cuda_CreateCube(GenerateInfo agInfo, float3 pos, float3* aVertList, float3* aNormList, unsigned int* aIndexList)
+
 {
 	int column = ( blockDim.x * blockIdx.x) + threadIdx.x;
 	int row = ( blockDim.y * blockIdx.y) + threadIdx.y;
@@ -152,22 +145,14 @@ __global__ void cuda_CreateCube(float3 pos, float3* aVertList, float3* aNormList
 	float points[8];
 	int bitmap = 0;
 
-	points[0] = DensityWithFloor( make_int3( column,	row,	depth ),	0.03f) - ((float)y * 0.03f);
-	points[1] = DensityWithFloor( make_int3( column+1,	row,	depth ),	0.03f) - ((float)y * 0.03f);
-	points[2] = DensityWithFloor( make_int3( column+1,	row+1,	depth ),	0.03f) - ((float)(y+1) * 0.03f);
-	points[3] = DensityWithFloor( make_int3( column,	row+1,	depth ),	0.03f) - ((float)(y+1) * 0.03f);
-	points[4] = DensityWithFloor( make_int3( column,	row,	depth+1 ),	0.03f) - ((float)y * 0.03f);
-	points[5] = DensityWithFloor( make_int3( column+1,	row,	depth+1) ,	0.03f) - ((float)y * 0.03f);
-	points[6] = DensityWithFloor( make_int3( column+1,	row+1,	depth+1 ),	0.03f) - ((float)(y+1) * 0.03f);
-	points[7] = DensityWithFloor( make_int3( column,	row+1,	depth+1 ),	0.03f) - ((float)(y+1) * 0.03f);
-
-	for(int i = 0; i < 15; i++)
-	{
-		aVertList[vertex + i] = make_float3(0); 
-		aNormList[vertex + i] = make_float3(0);
-		aIndexList[triangle+ i] = 0;
-	}
-
+	points[0] = DensityWithFloor( make_uint3( column,	row,	depth ),	0.03f) - ((float)y  * 0.03f) +1;
+	points[1] = DensityWithFloor( make_uint3( column+1,	row,	depth ),	0.03f) - ((float)y * 0.03f) +1;
+	points[2] = DensityWithFloor( make_uint3( column+1,	row+1,	depth ),	0.03f) - ((float)(y+1) * 0.03f)+1;
+	points[3] = DensityWithFloor( make_uint3( column,	row+1,	depth ),	0.03f) - ((float)(y+1) * 0.03f)+1;
+	points[4] = DensityWithFloor( make_uint3( column,	row,	depth+1 ),	0.03f) - ((float)y * 0.03f)+1;
+	points[5] = DensityWithFloor( make_uint3( column+1,	row,	depth+1) ,	0.03f) - ((float)y * 0.03f)+1;
+	points[6] = DensityWithFloor( make_uint3( column+1,	row+1,	depth+1 ),	0.03f) - ((float)(y+1) * 0.03f)+1;
+	points[7] = DensityWithFloor( make_uint3( column,	row+1,	depth+1 ),	0.03f) - ((float)(y+1) * 0.03f)+1;
 
 	//--Create lookup bitmap to find the edge table
 	for (int i = 0; i < 8; i++)
@@ -222,19 +207,20 @@ __global__ void cuda_CreateCube(float3 pos, float3* aVertList, float3* aNormList
 			int dst = vertex + i;
 			aVertList[dst] = vertlist[tex1Dfetch(tTriTex, (bitmap * 16) + i +2)];
 			aVertList[dst] += make_float3(x,y,z);
+			aVertList[dst] *= make_float3(0.05,0.05,0.05);
 			aIndexList[dst] = dst;
 
 			aVertList[dst+1] = vertlist[tex1Dfetch(tTriTex, (bitmap * 16) + i + 1)];
 			aVertList[dst+1] += make_float3(x,y,z);
+			aVertList[dst+1] *= make_float3(0.05,0.05,0.05);
 			aIndexList[dst+1] = dst+1;
 
 			aVertList[dst+2] = vertlist[tex1Dfetch(tTriTex, (bitmap * 16) + i + 0)];
 			aVertList[dst+2] += make_float3(x,y,z);
+			aVertList[dst+2] *= make_float3(0.05,0.05,0.05);
 			aIndexList[dst+2] = dst+2;
-
 		}
 	}
-
 }
 
 __global__ void cuda_generateNormals(float3* aVertList, float3* aNormList, unsigned int* aIndexList)
@@ -245,6 +231,7 @@ __global__ void cuda_generateNormals(float3* aVertList, float3* aNormList, unsig
 
 	int vertex = (column + (row * blockDim.x * gridDim.x)) + (depth * blockDim.x * gridDim.x * blockDim.y * gridDim.y);
 	vertex *= 15;
+	//int triangle = vertex;
 
 	//-- Generate normals
 	float3 vec1, vec2, vec3;
@@ -272,11 +259,11 @@ __global__ void cuda_generateNormals(float3* aVertList, float3* aNormList, unsig
 
 
 extern "C"
-void launch_CreateCube(dim3 grid, dim3 threads, float3 aPos, float3* aVertList, float3* aNormList, unsigned int* aIndexList)
+void launch_CreateCube(GenerateInfo* agInfo, dim3 grid, dim3 threads, float3 aPos, float3* aVertList, float3* aNormList, unsigned int* aIndexList)
 {
 	//Here you normally run:
 	
-	cuda_CreateCube<<<grid, threads>>>( aPos, aVertList, aNormList, aIndexList);
+	cuda_CreateCube<<<grid, threads>>>(*agInfo, aPos, aVertList, aNormList, aIndexList);
 	cutilCheckMsg("cuda_CreateCube failed");
 	cuda_generateNormals<<<grid, threads>>>(aVertList, aNormList, aIndexList);
 	cutilCheckMsg("cuda_CreateCube failed");
@@ -309,13 +296,16 @@ void host_CreatePerlinData(dim3 grid, dim3 threads, float3 pos, int rank)
 	
 	//Fill perlins
 	cuda_CreatePerlin<<<grid, threads>>>(pos, rank, dataPerlin1, dataPerlin2, dataPerlin3);
-       
+    cutilCheckMsg("cuda_CreateCube failed");
+
     //Bind as texture
 	cutilSafeCall(cudaBindTexture(0, tPerlin1, dataPerlin1, cD) );
 	cutilSafeCall(cudaBindTexture(0, tPerlin2, dataPerlin2, cD) );
 	cutilSafeCall(cudaBindTexture(0, tPerlin3, dataPerlin3, cD) );
 }
 
+////
+//This is old code used for reference!!!!!!!!!!!!!!!!!!!!!
 
 //PERLIN
 

@@ -1,5 +1,7 @@
 #pragma once;
 
+#include "Defines.h"
+
 class CPerlin;
 
 class CUDABlock;
@@ -9,18 +11,25 @@ public:
 	CUDAMarcher();
 	~CUDAMarcher();
 
-
+	void		PrepareTerrain();
+	void		GenerateTerrain(GenerateInfo gInfo);
+	void		ClearTerrain();
+		
 	void		Init(int gridX, int gridY, int gridZ);
+
+
 	void		Cubemarch();
 
 	void		Render();
 
-	void		BuildPerlinData(float* data1, float* data2, float* data3, unsigned int rankSize);
-	
 
 
 protected:
-	CPerlin* mPerlin;
+	void GenerateTileablePerlin(float* data, float scale, int rank);
+
+	GenerateInfo		mGenInfo;
+
+	CPerlin*			mPerlin;
 
 	unsigned int m_Rank;
 

@@ -53,6 +53,11 @@ void Renderer::Destory()
 	}
 }
 
+void Renderer::GenerateTerrain(GenerateInfo agInfo)
+{
+	mCUDAMarcher->GenerateTerrain(agInfo);
+}
+
 Renderer::Renderer(int argc, char* argv[])
 {
 	_InitOpenGL(argc, argv);
@@ -70,14 +75,14 @@ Renderer::Renderer(int argc, char* argv[])
 
 	int now = timeGetTime();
 	mCUDAMarcher = new CUDAMarcher();
-	mCUDAMarcher->Init(2, 2, 2); //Rank, Blockcount
-	mCUDAMarcher->Cubemarch();
+	//mCUDAMarcher->GenerateTerrain(GenerateInfo());
 	int result = timeGetTime() - now;
 
 	printf("> Created terrain, took %i ms\n", result);
 
 
-	mCam = new Camera();
+	mCam = new Camera(1.6f, 3.f, 5.f);
+	mCam->rotateLoc(40, 1,0,0);
 }
 
 Renderer::~Renderer()
@@ -142,7 +147,7 @@ void Renderer::_InitOpenGL(int argc, char* argv[])
 
 	//Opengl options
 	glutDisplayFunc(GLRenderCallback);
-	glClearColor(0.2,0.2,1,0);
+	glClearColor(0.2f,0.2f,1.f,0);
 	glShadeModel( GL_FLAT );
 	glEnable( GL_TEXTURE_2D );
 
@@ -205,9 +210,9 @@ void Renderer::_InitCg()
 void Renderer::_LoadTextures()
 {
 	til::Image* image[3];
-	image[0] = til::TIL_Load("./Assets/Textures/FloorsRegular.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);	//Side
-	image[1] = til::TIL_Load("./Assets/Textures/LeavesDead.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);		//Top
-	image[2] = til::TIL_Load("./Assets/Textures/FloorsRegular.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);	//Side
+	image[0] = til::TIL_Load("./Assets/Textures/RoughSoil.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);	//Side
+	image[1] = til::TIL_Load("./Assets/Textures/RoughSoil.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);		//Top
+	image[2] = til::TIL_Load("./Assets/Textures/RoughSoil.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);	//Side
 
 	glGenTextures(3, m_Textures);
 

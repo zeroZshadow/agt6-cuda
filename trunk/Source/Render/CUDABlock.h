@@ -2,6 +2,7 @@
 #include "vector_types.h"
 class CPerlin;
 
+struct GenerateInfo;
 struct cudaGraphicsResource;
 class CUDABlock
 {
@@ -10,7 +11,7 @@ public:
 	~CUDABlock();
 
 	void Init(float x, float y, float z);
-	void Build();
+	void Build(GenerateInfo* agInfo);
 	void Render();
 
 
