@@ -30,7 +30,8 @@ CUDAMarcher::CUDAMarcher()
 	m_Blocks = 0;
 	mPerlin = new CPerlin();
 	mPerlin->Initialize(1);
-	
+
+	PrepareTerrain();
 }
 
 CUDAMarcher::~CUDAMarcher()
@@ -41,8 +42,6 @@ CUDAMarcher::~CUDAMarcher()
 
 void CUDAMarcher::PrepareTerrain()
 {
-	//cudaGLSetGLDevice( cutGetMaxGflopsDeviceId() );
-
 	mCudaEdgeTable = 0;
 	mCudaTriTable = 0;
 	mCudaVertTable = 0;
@@ -56,17 +55,20 @@ void CUDAMarcher::PrepareTerrain()
 	//-- Create and load perlin data
 	host_PerlinInitialize(0);
 	host_InitPerlinData(PERLIN_DATA_RANK, PERLIN_DATA_SIZE);
+
+	//Init blocks
+	Init(4, 2, 2);
 }
 
 void CUDAMarcher::GenerateTerrain(GenerateInfo gInfo)
 {
-	cudaGLSetGLDevice( cutGetMaxGflopsDeviceId() );
-	PrepareTerrain();
-	ClearTerrain();
+	int now = timeGetTime();
+
 	mGenInfo = gInfo;
-	Init(4, 2, 2); //Rank, Blockcount
 	Cubemarch();
 
+	int result = timeGetTime() - now;
+	printf("> Created terrain, took %i ms\n", result);
 }
 
 void CUDAMarcher::ClearTerrain()

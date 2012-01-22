@@ -60,6 +60,7 @@ int main(int argc, char** argv)
 	_cam = _render->GetCam();
 	Application::Run(gcnew CudaTest::GUI());
 
+	cutilDeviceReset();
 	return 0;
 }
 
@@ -79,12 +80,9 @@ void updateProgram()
 	QueryPerformanceCounter(&t2);
 	elapsedTime = (float)(t2.QuadPart - t1.QuadPart) / frequency.QuadPart;
 	CheckControlls(elapsedTime);	
-
-	cutilDeviceReset();
 }
 
 void generateTerrain(GenerateInfo agInfo)
 {
 	_render->GenerateTerrain(agInfo);
-
 }

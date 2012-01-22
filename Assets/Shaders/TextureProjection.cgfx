@@ -52,8 +52,6 @@ void FragmentProg(	float4 position  : TEXCOORD0,
 	float3 P = position.xyz;
 	float3 N = normalize(normal);
 
-	float4 emissive = glstate.material.emission;
-	
 	float4 ambient = glstate.lightmodel.ambient;
 
 	float3 L = normalize(mul(float3x3(glstate.matrix.inverse.modelview[0]),glstate.light[0].position.xyz));
@@ -86,7 +84,7 @@ void FragmentProg(	float4 position  : TEXCOORD0,
 					col3.xyzw * blend_weights.zzzz;
 	
 	//Combine
-	color = (emissive) + (ambient) + (blended_color*diffuse) + specular;
+	color = (ambient) + (blended_color * diffuseLight) + specular;
 	color.w = 1;
 }
 
