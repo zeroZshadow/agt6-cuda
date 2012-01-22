@@ -182,6 +182,7 @@ __global__ void cuda_ClassifyVoxel(GenerateInfo agInfo, float3 pos, uint* voxelV
 		SMethodCaves(points, gridPos);
 	}
 
+	//-- Create a 
 	bitmap += (points[0] < agInfo.iso);
 	bitmap += (points[1] < agInfo.iso)<<1;
 	bitmap += (points[2] < agInfo.iso)<<2;

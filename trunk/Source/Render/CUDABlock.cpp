@@ -195,8 +195,6 @@ bool CUDABlock::Build(GenerateInfo* agInfo)
 		sizeof(uint), cudaMemcpyDeviceToHost));
 	uint totalVerts = lastElement2 + lastScanElement2;
 
-	
-
 	//Resize VBO's
 	if(!ResizeVBOs(totalVerts, totalVerts)){
 		m_FaceCount = 0;
@@ -211,11 +209,6 @@ bool CUDABlock::Build(GenerateInfo* agInfo)
 	cutilSafeCall(cudaGraphicsResourceGetMappedPointer((void**)&cuda_Normals, &num_bytes, cuda_VBO_Normals));
 	cutilSafeCall(cudaGraphicsMapResources(1, &cuda_VBO_Indices, 0));
 	cutilSafeCall(cudaGraphicsResourceGetMappedPointer((void**)&cuda_Indices, &num_bytes, cuda_VBO_Indices));
-
-	//Create cube
-	//dim3 gridDim(16,16,1);
-	//dim3 blockDim(2,2,32);
-	//launch_CreateCube(agInfo, gridDim, blockDim, mPos, cuda_Vertices, cuda_Normals, cuda_Indices);
 
 	//launch_generateTriangles(
 	dim3 grid2((int) ceil(activeVoxels / (float) 128), 1, 1);
