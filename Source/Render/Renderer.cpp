@@ -169,7 +169,7 @@ void Renderer::_InitLighting()
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 
-	GLfloat g_LighDir[] = { 1.0f, 0.0f, 0.0f, 0.0f }; 
+	GLfloat g_LighDir[] = { 0.0f, -0.5f, 0.5f, 0.0f }; 
 	GLfloat g_LightAmbient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
 	GLfloat g_LightDiffuse[] = { 0.5f, 0.5f, 0.5f, 1.0f };
 	GLfloat g_LightSpecular[] = { 0.1f, 0.1f, 0.1f, 1.0f };
