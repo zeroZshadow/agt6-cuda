@@ -119,6 +119,8 @@
 			/>
 			<Tool
 				Name="Cudart Build Rule"
+				MaxRegCount="0"
+				FastMath="true"
 				Runtime="2"
 			/>
 			<Tool
@@ -231,10 +233,6 @@
 			>
 			<File
 				RelativePath=".\Source\CudaFiles\Cube.cu"
-				>
-			</File>
-			<File
-				RelativePath=".\Source\CudaFiles\Perlin.cu"
 				>
 			</File>
 		</Filter>

@@ -29,7 +29,7 @@ struct GenerateInfo
 		genType = GM_FLOOR;
 		sampleType = SM_PREMADE;
 		sphereRad = 10;
-		floor = 0.1;
+		floor = 0.1f;
 		floorWeight = 1;
 
 		prlnWeight1 = 1;
