@@ -12,8 +12,8 @@ public:
 	~CUDABlock();
 
 	void Init(float x, float y, float z);
-	void ResizeVBOs(int vertices, int indices);
-	void Build(GenerateInfo* agInfo);
+	bool ResizeVBOs(int vertices, int indices);
+	bool Build(GenerateInfo* agInfo);
 	void Render();
 
 
