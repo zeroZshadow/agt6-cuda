@@ -71,12 +71,7 @@ void CUDABlock::Init(float x, float y, float z)
 
 	//Setup VBO's
 	unsigned int MaxVertices = m_Rank * m_Rank * m_Rank * 15;
-	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Vertices );
-	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * MaxVertices, 0, GL_DYNAMIC_DRAW_ARB );
-	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Normals );
-	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * MaxVertices, 0, GL_DYNAMIC_DRAW_ARB );
-	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Indices );
-	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(GLuint) * MaxVertices, 0, GL_DYNAMIC_DRAW_ARB );
+	ResizeVBOs(MaxVertices, MaxVertices);
 
 	if(glGetError() != GL_NO_ERROR)	{
 		printf("Error creating VBOs");
@@ -90,9 +85,31 @@ void CUDABlock::Init(float x, float y, float z)
 
 }
 
+void CUDABlock::ResizeVBOs(int vertices, int indices)
+{
+	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Vertices );
+	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * vertices, 0, GL_DYNAMIC_DRAW_ARB );
+	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Normals );
+	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * vertices, 0, GL_DYNAMIC_DRAW_ARB );
+	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Indices );
+	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(GLuint) * indices, 0, GL_DYNAMIC_DRAW_ARB );
+}
+
 
 void CUDABlock::Build(GenerateInfo* agInfo)
 {
+	m_FaceCount= (32*32*32*15); //TODO: change propperly
+
+	//Generate perlin textures
+	dim3 PerlingridDim(17,17,1);
+	dim3 PerlinblockDim(2,2,34);
+	host_CreatePerlinData(agInfo, PerlingridDim, PerlinblockDim, mPos, 33);
+
+	//Count vertices
+
+	//Resize VBO's
+	ResizeVBOs(m_FaceCount, m_FaceCount);
+
 	//Map ALL THE VBO'S
 	size_t num_bytes;
 	cutilSafeCall(cudaGraphicsMapResources(1, &cuda_VBO_Vertices, 0));
@@ -102,15 +119,9 @@ void CUDABlock::Build(GenerateInfo* agInfo)
 	cutilSafeCall(cudaGraphicsMapResources(1, &cuda_VBO_Indices, 0));
 	cutilSafeCall(cudaGraphicsResourceGetMappedPointer((void**)&cuda_Indices, &num_bytes, cuda_VBO_Indices));
 
-	m_FaceCount= (32*32*32*15); //TODO: change propperly
-
+	//Create cube
 	dim3 gridDim(16,16,1);
 	dim3 blockDim(2,2,32);
-
-	dim3 PerlingridDim(17,17,1);
-	dim3 PerlinblockDim(2,2,34);
-		
-	host_CreatePerlinData(agInfo, PerlingridDim, PerlinblockDim, mPos, 33);
 	launch_CreateCube(agInfo, gridDim, blockDim, mPos, cuda_Vertices, cuda_Normals, cuda_Indices);
 
 	//Unmap
