@@ -78,19 +78,19 @@ void load_perlin_data(float** aDstCuda1, float* aData1, float** aDstCuda2, float
 
 __device__ float SampleData1( int3 pos )
 {
-    unsigned int i = (pos.z*PERLIN_DATA_RANK*PERLIN_DATA_RANK) + (pos.y*PERLIN_DATA_RANK) + pos.x;
+    unsigned int i = (pos.z*PERLIN_DATA_SIZE*PERLIN_DATA_SIZE) + (pos.y*PERLIN_DATA_SIZE) + pos.x;
     return tex1Dfetch(tPerlin1, i);
 }
 
 __device__ float SampleData2( int3 pos )
 {
-	unsigned int i = (pos.z*PERLIN_DATA_RANK*PERLIN_DATA_RANK) + (pos.y*PERLIN_DATA_RANK) + pos.x;
+	unsigned int i = (pos.z*PERLIN_DATA_SIZE*PERLIN_DATA_SIZE) + (pos.y*PERLIN_DATA_SIZE) + pos.x;
     return tex1Dfetch(tPerlin2, i);
 }
 
 __device__ float SampleData3( int3 pos )
 {
-    unsigned int i = (pos.z*PERLIN_DATA_RANK*PERLIN_DATA_RANK) + (pos.y*PERLIN_DATA_RANK) + pos.x;
+    unsigned int i = (pos.z*PERLIN_DATA_SIZE*PERLIN_DATA_SIZE) + (pos.y*PERLIN_DATA_SIZE) + pos.x;
     return tex1Dfetch(tPerlin3, i);
 }
 
@@ -285,11 +285,11 @@ void launch_CreateCube(dim3 grid, dim3 threads, float3 aPos, float3* aVertList, 
 }
 
 extern "C"
-void host_InitPerlinData(int rank)
+void host_InitPerlinData(int rank, int size)
 {
 	cudaChannelFormatDesc cD = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
 	rankPerlin = rank;
-	int dataSize = rank*rank*rank;
+	int dataSize = size*size*size;
 	
 	// allocate data as textures
     cutilSafeCall(cudaMalloc((void**) &dataPerlin1, dataSize*sizeof(float)));

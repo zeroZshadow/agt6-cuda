@@ -110,8 +110,8 @@ void CUDABlock::Build()
 	dim3 gridDim(4,4,4);
 	dim3 blockDim(8,8,8);
 
-	dim3 PerlingridDim(33,33,33);
-	dim3 PerlinblockDim(1,1,1);
+	dim3 PerlingridDim(17,17,17);
+	dim3 PerlinblockDim(2,2,2);
 	
 	host_CreatePerlinData(PerlingridDim, PerlinblockDim, mPos, 33);
 	launch_CreateCube(gridDim, blockDim, mPos, cuda_Vertices, cuda_Normals, cuda_Indices);
