@@ -144,7 +144,9 @@ __global__ void cuda_CreateCube(GenerateInfo agInfo, float3 pos, float3* aVertLi
 
 	for(int i = 0; i < 15; i++)
 	{
-		
+		aVertList[vertex+i] += make_float3(0,0,0);
+		aNormList[vertex+i] += make_float3(0,0,0);
+		aIndexList[vertex+i] = 0;
 	}
 
 	float points[8];
