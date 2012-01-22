@@ -76,7 +76,7 @@ Renderer::Renderer(int argc, char* argv[])
 	mCUDAMarcher = new CUDAMarcher();
 	//mCUDAMarcher->GenerateTerrain(GenerateInfo());
 
-	mCam = new Camera(1.6f, 3.f, 5.f);
+	mCam = new Camera(1.6f, 7.f, 5.f);
 	mCam->rotateLoc(40, 1,0,0);
 }
 
@@ -210,8 +210,8 @@ void Renderer::_LoadTextures()
 	//Load terrain textures
 	til::Image* image[3];
 	image[0] = til::TIL_Load("./Assets/Textures/RoughSoil.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);	//Side
-	image[1] = til::TIL_Load("./Assets/Textures/SoilTop.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);		//Top
-	image[2] = til::TIL_Load("./Assets/Textures/LeavesDead.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);	//Side
+	image[1] = til::TIL_Load("./Assets/Textures/LeavesDead.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);		//Top
+	image[2] = til::TIL_Load("./Assets/Textures/SoilTop.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);	//Side
 
 	glGenTextures(3, m_Textures);
 
