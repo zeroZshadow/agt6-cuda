@@ -142,6 +142,11 @@ __global__ void cuda_CreateCube(GenerateInfo agInfo, float3 pos, float3* aVertLi
 	int y = row + pos.y * MARCHING_BLOCK_SIZE;
 	int z = depth + pos.z * MARCHING_BLOCK_SIZE;
 
+	for(int i = 0; i < 15; i++)
+	{
+		
+	}
+
 	float points[8];
 	int bitmap = 0;
 
