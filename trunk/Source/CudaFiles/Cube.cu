@@ -81,27 +81,19 @@ __device__ float SampleData3( uint3 pos )
     return tex1Dfetch(tPerlin3, i);
 }
 
-__device__ float DensityCaves( uint3 pos)
-{
-	return SampleData1( pos );
-}
 
-__device__ float DensityWithFloor( uint3 pos, float floor)
-{
-	return SampleData1( pos ) + (floor * 0.05f);
-}
 
-__device__ float DensitySphere( uint3 pos, float radius)
-{
-	float dens = length( make_float3(pos) - make_float3(32,32,32));
-	dens = 3 - dens/9;
-	return SampleData1( pos ) + dens;
-}
+//__device__ float DensitySphere( uint3 pos, float radius)
+//{
+//	float dens = length( make_float3(pos) - make_float3(32,32,32));
+//	dens = 3 - dens/9;
+//	return SampleData1( pos ) + dens;
+//}
 
 __device__
 float3 InterpVertexPos(float iso, float3 p0, float3 p1, float f0, float f1)
 {
-    float t = ((iso - f0) / (f1 - f0));//, 0.0f , 1.0f);
+    float t = ((iso - f0) / (f1 - f0));
 	return lerp(p0, p1, t);
 } 
 
@@ -112,35 +104,56 @@ float3 InterpVertexPos2(float3 p0, float3 p1, float f0, float f1)
 	return lerp(p0, p1, t);
 }
 
+__device__ void SMethodFloor(float* points, uint3 gridPos, float floor, float y)
+{
+
+	points[0] = floor-y + SampleData1( make_uint3( gridPos.x,	gridPos.y,	gridPos.z ));
+	points[4] = floor-y + SampleData1( make_uint3( gridPos.x,	gridPos.y,	gridPos.z+1 ));
+	points[3] = floor-(y+1) + SampleData1( make_uint3( gridPos.x,	gridPos.y+1,	gridPos.z ));
+	points[7] = floor-(y+1) + SampleData1( make_uint3( gridPos.x,	gridPos.y+1,	gridPos.z+1 ));
+
+	points[1] = floor-y + SampleData1( make_uint3( gridPos.x+1,	gridPos.y,	gridPos.z ));
+	points[5] = floor-y + SampleData1( make_uint3( gridPos.x+1,	gridPos.y,	gridPos.z+1));
+	points[6] = floor-(y+1) + SampleData1( make_uint3( gridPos.x+1,	gridPos.y+1,	gridPos.z+1 ));
+	points[2] = floor-(y+1) + SampleData1( make_uint3( gridPos.x+1,	gridPos.y+1,	gridPos.z ));
+
+}
+
+
+__device__ void SMethodSphere(float* points, float3 pos, float radius)
+{
+
+}
+
+__device__ void SMethodCaves(float* points, float3 pos)
+{
+
+}
+
 __global__ void cuda_ClassifyVoxel(GenerateInfo agInfo, float3 pos, uint* voxelVertCnt, 
 								   uint* voxelOccupied)
 {
-	int3 gridPos;
+	uint3 gridPos;
 	gridPos.x = ( blockDim.x * blockIdx.x) + threadIdx.x;
 	gridPos.y = ( blockDim.y * blockIdx.y) + threadIdx.y;
 	gridPos.z = ( blockDim.z * blockIdx.z) + threadIdx.z;
-	float y = gridPos.y + pos.y * MARCHING_BLOCK_SIZE;
+	float y = (float)gridPos.y + pos.y * MARCHING_BLOCK_SIZE;
 	int i = (gridPos.x + (gridPos.y * blockDim.x * gridDim.x)) + (gridPos.z * blockDim.x * gridDim.x * blockDim.y * gridDim.y);
 
 	float points[8];
 	int bitmap = 0;
 
-	points[0] = DensityWithFloor( make_uint3( gridPos.x,	gridPos.y,	gridPos.z ),	0.03f) - ((float)y  * 0.03f) +1;
-	points[1] = DensityWithFloor( make_uint3( gridPos.x+1,	gridPos.y,	gridPos.z ),	0.03f) - ((float)y * 0.03f) +1;
-	points[2] = DensityWithFloor( make_uint3( gridPos.x+1,	gridPos.y+1,	gridPos.z ),	0.03f) - ((float)(y+1) * 0.03f)+1;
-	points[3] = DensityWithFloor( make_uint3( gridPos.x,	gridPos.y+1,	gridPos.z ),	0.03f) - ((float)(y+1) * 0.03f)+1;
-	points[4] = DensityWithFloor( make_uint3( gridPos.x,	gridPos.y,	gridPos.z+1 ),	0.03f) - ((float)y * 0.03f)+1;
-	points[5] = DensityWithFloor( make_uint3( gridPos.x+1,	gridPos.y,	gridPos.z+1) ,	0.03f) - ((float)y * 0.03f)+1;
-	points[6] = DensityWithFloor( make_uint3( gridPos.x+1,	gridPos.y+1,	gridPos.z+1 ),	0.03f) - ((float)(y+1) * 0.03f)+1;
-	points[7] = DensityWithFloor( make_uint3( gridPos.x,	gridPos.y+1,	gridPos.z+1 ),	0.03f) - ((float)(y+1) * 0.03f)+1;
+	SMethodFloor(points, gridPos, agInfo.floor, y);
 
-	for (int ii = 0; ii < 8; ii++)
-	{
-		if (points[ii] < agInfo.iso)
-		{
-			bitmap ^= 1<<ii;						
-		}
-	}
+	bitmap += (points[0] < agInfo.iso);
+	bitmap += (points[1] < agInfo.iso)<<1;
+	bitmap += (points[2] < agInfo.iso)<<2;
+	bitmap += (points[3] < agInfo.iso)<<3;
+	bitmap += (points[4] < agInfo.iso)<<4;
+	bitmap += (points[5] < agInfo.iso)<<5;
+	bitmap += (points[6] < agInfo.iso)<<6;
+	bitmap += (points[7] < agInfo.iso)<<7;
+
 
     // read number of vertices from texture
     uint numVerts = tex1Dfetch(tNRVertsTex, bitmap);
@@ -200,8 +213,8 @@ cuda_generateTriangles(GenerateInfo agInfo, float3 pos, float3 *aVertList, float
     uint blockId = __mul24(blockIdx.y, gridDim.x) + blockIdx.x;
     uint idx = __mul24(blockId, blockDim.x) + threadIdx.x;
 
-    if (idx > activeVoxels - 1) {
-        idx = activeVoxels - 1;
+    if (idx > activeVoxels) {
+        idx = activeVoxels;
     }
 
 	uint voxelIndex = compactedVoxelArray[idx];
@@ -213,91 +226,79 @@ cuda_generateTriangles(GenerateInfo agInfo, float3 pos, float3 *aVertList, float
 	float points[8];
 	int bitmap = 0;
 
-	points[0] = DensityWithFloor( make_uint3( gridPos.x,	gridPos.y,	gridPos.z ),	0.03f) - ((float)y  * 0.03f) +1;
-	points[1] = DensityWithFloor( make_uint3( gridPos.x+1,	gridPos.y,	gridPos.z ),	0.03f) - ((float)y * 0.03f) +1;
-	points[2] = DensityWithFloor( make_uint3( gridPos.x+1,	gridPos.y+1,	gridPos.z ),	0.03f) - ((float)(y+1) * 0.03f)+1;
-	points[3] = DensityWithFloor( make_uint3( gridPos.x,	gridPos.y+1,	gridPos.z ),	0.03f) - ((float)(y+1) * 0.03f)+1;
-	points[4] = DensityWithFloor( make_uint3( gridPos.x,	gridPos.y,	gridPos.z+1 ),	0.03f) - ((float)y * 0.03f)+1;
-	points[5] = DensityWithFloor( make_uint3( gridPos.x+1,	gridPos.y,	gridPos.z+1) ,	0.03f) - ((float)y * 0.03f)+1;
-	points[6] = DensityWithFloor( make_uint3( gridPos.x+1,	gridPos.y+1,	gridPos.z+1 ),	0.03f) - ((float)(y+1) * 0.03f)+1;
-	points[7] = DensityWithFloor( make_uint3( gridPos.x,	gridPos.y+1,	gridPos.z+1 ),	0.03f) - ((float)(y+1) * 0.03f)+1;
+	SMethodFloor(points, gridPos, agInfo.floor, y);
 
 	//--Create lookup bitmap to find the edge table
-	for (int i = 0; i < 8; i++)
-	{
-		//points[i] -= column * 0.1;
-		if (points[i] < agInfo.iso)
-		{
-			bitmap ^= 1<<i;						
-		}
-	}
+	bitmap += (points[0] < agInfo.iso);
+	bitmap += (points[1] < agInfo.iso)<<1;
+	bitmap += (points[2] < agInfo.iso)<<2;
+	bitmap += (points[3] < agInfo.iso)<<3;
+	bitmap += (points[4] < agInfo.iso)<<4;
+	bitmap += (points[5] < agInfo.iso)<<5;
+	bitmap += (points[6] < agInfo.iso)<<6;
+	bitmap += (points[7] < agInfo.iso)<<7;
 
 	//-- Creating triangles
 	unsigned int vertNr = tex1Dfetch(tNRVertsTex ,bitmap);
-	if (vertNr >= 255 || vertNr <= 0)
+
+	//-- point cube
+	float3 pCube[8];
+	pCube[0] = make_float3(0, 0, 0);
+	pCube[1] = make_float3(1, 0, 0);
+	pCube[2] = make_float3(1, 1, 0);
+	pCube[3] = make_float3(0, 1, 0);
+	pCube[4] = make_float3(0, 0, 1);
+	pCube[5] = make_float3(1, 0, 1);
+	pCube[6] = make_float3(1, 1, 1);
+	pCube[7] = make_float3(0, 1, 1);
+	
+
+	float3 vertlist[12];
+
+	vertlist[0] = InterpVertexPos(agInfo.iso, pCube[0], pCube[1], points[0], points[1]);
+	vertlist[1] = InterpVertexPos(agInfo.iso, pCube[1], pCube[2], points[1], points[2]);
+	vertlist[2] = InterpVertexPos(agInfo.iso, pCube[2], pCube[3], points[2], points[3]);
+	vertlist[3] = InterpVertexPos(agInfo.iso, pCube[3], pCube[0], points[3], points[0]);
+
+	vertlist[4] = InterpVertexPos(agInfo.iso, pCube[4], pCube[5], points[4], points[5]);
+	vertlist[5] = InterpVertexPos(agInfo.iso, pCube[5], pCube[6], points[5], points[6]);
+	vertlist[6] = InterpVertexPos(agInfo.iso, pCube[6], pCube[7], points[6], points[7]);
+	vertlist[7] = InterpVertexPos(agInfo.iso, pCube[7], pCube[4], points[7], points[4]);
+
+	vertlist[8] = InterpVertexPos(agInfo.iso, pCube[0], pCube[4], points[0], points[4]);
+	vertlist[9] = InterpVertexPos(agInfo.iso, pCube[1], pCube[5], points[1], points[5]);
+	vertlist[10] = InterpVertexPos(agInfo.iso, pCube[2], pCube[6], points[2], points[6]);
+	vertlist[11] = InterpVertexPos(agInfo.iso, pCube[3], pCube[7], points[3], points[7]);
+
+	for (int i = 0; i < vertNr; i+=3)
 	{
-		
-	}
-	else
-	{
-		//-- point cube
-		float3 pCube[8];
-		pCube[0] = make_float3(0, 0, 0);
-		pCube[1] = make_float3(1, 0, 0);
-		pCube[2] = make_float3(1, 1, 0);
-		pCube[3] = make_float3(0, 1, 0);
-		pCube[4] = make_float3(0, 0, 1);
-		pCube[5] = make_float3(1, 0, 1);
-		pCube[6] = make_float3(1, 1, 1);
-		pCube[7] = make_float3(0, 1, 1);
-		
-
-		float3 vertlist[12];
-
-		vertlist[0] = InterpVertexPos(agInfo.iso, pCube[0], pCube[1], points[0], points[1]);
-		vertlist[1] = InterpVertexPos(agInfo.iso, pCube[1], pCube[2], points[1], points[2]);
-		vertlist[2] = InterpVertexPos(agInfo.iso, pCube[2], pCube[3], points[2], points[3]);
-		vertlist[3] = InterpVertexPos(agInfo.iso, pCube[3], pCube[0], points[3], points[0]);
-
-		vertlist[4] = InterpVertexPos(agInfo.iso, pCube[4], pCube[5], points[4], points[5]);
-		vertlist[5] = InterpVertexPos(agInfo.iso, pCube[5], pCube[6], points[5], points[6]);
-		vertlist[6] = InterpVertexPos(agInfo.iso, pCube[6], pCube[7], points[6], points[7]);
-		vertlist[7] = InterpVertexPos(agInfo.iso, pCube[7], pCube[4], points[7], points[4]);
-
-		vertlist[8] = InterpVertexPos(agInfo.iso, pCube[0], pCube[4], points[0], points[4]);
-		vertlist[9] = InterpVertexPos(agInfo.iso, pCube[1], pCube[5], points[1], points[5]);
-		vertlist[10] = InterpVertexPos(agInfo.iso, pCube[2], pCube[6], points[2], points[6]);
-		vertlist[11] = InterpVertexPos(agInfo.iso, pCube[3], pCube[7], points[3], points[7]);
-
-		for (int i = 0; i < vertNr; i+=3)
+		uint index = numVertsScanned[voxelIndex] + i;
+		if(index < maxVerts)
 		{
-			uint index = numVertsScanned[voxelIndex] + i;
-			if(index < (maxVerts -3))
-			{
-				int dst = index;
-				aVertList[dst] = vertlist[tex1Dfetch(tTriTex, (bitmap * 16) + i +0)];
-				aVertList[dst] += make_float3(x,y,z);
-				aVertList[dst] *= make_float3(0.05,0.05,0.05);
-				aTriList[dst] = dst;
+			int dst = index;
+			aVertList[dst] = vertlist[tex1Dfetch(tTriTex, (bitmap * 16) + i +0)];
+			aVertList[dst] += make_float3(x,y,z);
+			aVertList[dst] *= make_float3(0.05,0.05,0.05);
+			aTriList[dst] = dst;
 
-				aVertList[dst+1] = vertlist[tex1Dfetch(tTriTex, (bitmap * 16) + i + 1)];
-				aVertList[dst+1] += make_float3(x,y,z);
-				aVertList[dst+1] *= make_float3(0.05,0.05,0.05);
-				aTriList[dst+1] = dst+1;
+			aVertList[dst+1] = vertlist[tex1Dfetch(tTriTex, (bitmap * 16) + i + 1)];
+			aVertList[dst+1] += make_float3(x,y,z);
+			aVertList[dst+1] *= make_float3(0.05,0.05,0.05);
+			aTriList[dst+1] = dst+1;
 
-				aVertList[dst+2] = vertlist[tex1Dfetch(tTriTex, (bitmap * 16) + i + 2)];
-				aVertList[dst+2] += make_float3(x,y,z);
-				aVertList[dst+2] *= make_float3(0.05,0.05,0.05);
-				aTriList[dst+2] = dst+2;
+			aVertList[dst+2] = vertlist[tex1Dfetch(tTriTex, (bitmap * 16) + i + 2)];
+			aVertList[dst+2] += make_float3(x,y,z);
+			aVertList[dst+2] *= make_float3(0.05,0.05,0.05);
+			aTriList[dst+2] = dst+2;
 
-				float3 edge1 = aVertList[dst+1] - aVertList[dst];
-				float3 edge2 = aVertList[dst+2] - aVertList[dst];
-				aNormList[dst] = normalize(cross(edge1, edge2));
-				aNormList[dst+1] = aNormList[dst];
-				aNormList[dst+2] = aNormList[dst];		
-			}
+			float3 edge1 = aVertList[dst+1] - aVertList[dst];
+			float3 edge2 = aVertList[dst+2] - aVertList[dst];
+			aNormList[dst] = normalize(cross(edge1, edge2));
+			aNormList[dst+1] = aNormList[dst];
+			aNormList[dst+2] = aNormList[dst];		
 		}
 	}
+
 }
 
 
@@ -344,15 +345,7 @@ __global__ void cuda_CreateCube(GenerateInfo agInfo, float3 pos, float3* aVertLi
 	float points[8];
 	int bitmap = 0;
 
-	points[0] = DensityWithFloor( make_uint3( column,	row,	depth ),	0.03f) - ((float)y  * 0.03f) +1;
-	points[1] = DensityWithFloor( make_uint3( column+1,	row,	depth ),	0.03f) - ((float)y * 0.03f) +1;
-	points[2] = DensityWithFloor( make_uint3( column+1,	row+1,	depth ),	0.03f) - ((float)(y+1) * 0.03f)+1;
-	points[3] = DensityWithFloor( make_uint3( column,	row+1,	depth ),	0.03f) - ((float)(y+1) * 0.03f)+1;
-	points[4] = DensityWithFloor( make_uint3( column,	row,	depth+1 ),	0.03f) - ((float)y * 0.03f)+1;
-	points[5] = DensityWithFloor( make_uint3( column+1,	row,	depth+1) ,	0.03f) - ((float)y * 0.03f)+1;
-	points[6] = DensityWithFloor( make_uint3( column+1,	row+1,	depth+1 ),	0.03f) - ((float)(y+1) * 0.03f)+1;
-	points[7] = DensityWithFloor( make_uint3( column,	row+1,	depth+1 ),	0.03f) - ((float)(y+1) * 0.03f)+1;
-
+	SMethodFloor(points, make_uint3(column, row, depth), agInfo.floor, y);
 
 
 	//--Create lookup bitmap to find the edge table

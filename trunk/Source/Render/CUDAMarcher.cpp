@@ -71,12 +71,14 @@ void CUDAMarcher::PrepareTerrain()
 	cutilSafeCall(cudaMalloc((void**) &CUDABlock::cuda_compVoxelArray, bufsize));
 
 	//Init blocks
-	Init(10, 2, 10);
+	Init(5, 3, 5);
 }
 
 void CUDAMarcher::GenerateTerrain(GenerateInfo gInfo)
 {
 	int now = timeGetTime();
+
+	gInfo.floor = (m_GridY * 32) / 2;
 
 	mGenInfo = gInfo;
 	ClearTerrain();

@@ -172,7 +172,7 @@ namespace CudaTest {
 			// FloorBar
 			// 
 			this->FloorBar->Location = System::Drawing::Point(6, 59);
-			this->FloorBar->Maximum = 100;
+			this->FloorBar->Maximum = 1000;
 			this->FloorBar->Name = L"FloorBar";
 			this->FloorBar->Size = System::Drawing::Size(204, 45);
 			this->FloorBar->TabIndex = 9;
@@ -200,7 +200,7 @@ namespace CudaTest {
 			// SphereBar
 			// 
 			this->SphereBar->Location = System::Drawing::Point(216, 58);
-			this->SphereBar->Maximum = 100;
+			this->SphereBar->Maximum = 1000;
 			this->SphereBar->Name = L"SphereBar";
 			this->SphereBar->Size = System::Drawing::Size(206, 45);
 			this->SphereBar->TabIndex = 9;
@@ -318,7 +318,7 @@ namespace CudaTest {
 			// WeightBar3
 			// 
 			this->WeightBar3->Location = System::Drawing::Point(254, 134);
-			this->WeightBar3->Maximum = 100;
+			this->WeightBar3->Maximum = 1000;
 			this->WeightBar3->Name = L"WeightBar3";
 			this->WeightBar3->Size = System::Drawing::Size(168, 45);
 			this->WeightBar3->TabIndex = 9;
@@ -327,7 +327,7 @@ namespace CudaTest {
 			// WeightBar2
 			// 
 			this->WeightBar2->Location = System::Drawing::Point(254, 83);
-			this->WeightBar2->Maximum = 100;
+			this->WeightBar2->Maximum = 1000;
 			this->WeightBar2->Name = L"WeightBar2";
 			this->WeightBar2->Size = System::Drawing::Size(168, 45);
 			this->WeightBar2->TabIndex = 9;
@@ -336,7 +336,7 @@ namespace CudaTest {
 			// NoiseBar3
 			// 
 			this->NoiseBar3->Location = System::Drawing::Point(7, 134);
-			this->NoiseBar3->Maximum = 100;
+			this->NoiseBar3->Maximum = 1000;
 			this->NoiseBar3->Name = L"NoiseBar3";
 			this->NoiseBar3->Size = System::Drawing::Size(248, 45);
 			this->NoiseBar3->TabIndex = 9;
@@ -345,7 +345,7 @@ namespace CudaTest {
 			// WeightBar1
 			// 
 			this->WeightBar1->Location = System::Drawing::Point(254, 32);
-			this->WeightBar1->Maximum = 100;
+			this->WeightBar1->Maximum = 1000;
 			this->WeightBar1->Name = L"WeightBar1";
 			this->WeightBar1->Size = System::Drawing::Size(168, 45);
 			this->WeightBar1->TabIndex = 9;
@@ -354,7 +354,7 @@ namespace CudaTest {
 			// NoiseBar2
 			// 
 			this->NoiseBar2->Location = System::Drawing::Point(7, 83);
-			this->NoiseBar2->Maximum = 100;
+			this->NoiseBar2->Maximum = 1000;
 			this->NoiseBar2->Name = L"NoiseBar2";
 			this->NoiseBar2->Size = System::Drawing::Size(248, 45);
 			this->NoiseBar2->TabIndex = 9;
@@ -363,7 +363,7 @@ namespace CudaTest {
 			// NoiseBar1
 			// 
 			this->NoiseBar1->Location = System::Drawing::Point(7, 32);
-			this->NoiseBar1->Maximum = 100;
+			this->NoiseBar1->Maximum = 1000;
 			this->NoiseBar1->Name = L"NoiseBar1";
 			this->NoiseBar1->Size = System::Drawing::Size(248, 45);
 			this->NoiseBar1->TabIndex = 9;
@@ -437,11 +437,7 @@ namespace CudaTest {
 					genInfo.genType = GM_CAVES;
 				 }
 
-
-				 float test1 = 15;
-				 float test2 = QUICK_RANGE_MAP(test1, 10.f, 20.0f, 2.0f, 4.0f);
-
-				 
+		 
 				 genInfo.floor = QUICK_RANGE_MAP( (float)FloorBar->Value, 0.f, 100.f, FLOOR_GEN_RANGE_MIN, FLOOR_GEN_RANGE_MAX) ;
 				 genInfo.sphereRad = QUICK_RANGE_MAP( (float)SphereBar->Value, 0.f, 100.f, FLOOR_GEN_RANGE_MIN, FLOOR_GEN_RANGE_MAX) ;
 				 genInfo.prlnWeight1 = QUICK_RANGE_MAP( (float)WeightBar1->Value, 0.f, 100.f, PERLIN_WEIGHT_RANGE_MIN, PERLIN_WEIGHT_RANGE_MAX) ;
@@ -449,9 +445,9 @@ namespace CudaTest {
 				 genInfo.prlnWeight3 = QUICK_RANGE_MAP( (float)WeightBar3->Value, 0.f, 100.f, PERLIN_WEIGHT_RANGE_MIN, PERLIN_WEIGHT_RANGE_MAX) ;
 				 genInfo.prlnWeight4 = 0;//QUICK_RANGE_MAP( (float)FloorBar->Value, 0.f, 100.f, FLOOR_GEN_RANGE_MIN, FLOOR_GEN_RANGE_MAX) ;
 
-				 genInfo.prlnNoise1 = QUICK_RANGE_MAP( 100.0f - (float)NoiseBar1->Value, 0.f, 100.f, PERLIN_NOISE_RANGE_MIN, PERLIN_NOISE_RANGE_MAX) ;
-				 genInfo.prlnNoise2 = QUICK_RANGE_MAP( 100.0f - (float)NoiseBar2->Value, 0.f, 100.f, PERLIN_NOISE_RANGE_MIN, PERLIN_NOISE_RANGE_MAX) ;
-				 genInfo.prlnNoise3 = QUICK_RANGE_MAP( 100.0f - (float)NoiseBar3->Value, 0.f, 100.f, PERLIN_NOISE_RANGE_MIN, PERLIN_NOISE_RANGE_MAX) ;
+				 genInfo.prlnNoise1 = QUICK_RANGE_MAP( (float)NoiseBar1->Maximum - (float)NoiseBar1->Value, 0.f, (float)NoiseBar1->Maximum, PERLIN_NOISE_RANGE_MIN, PERLIN_NOISE_RANGE_MAX) ;
+				 genInfo.prlnNoise2 = QUICK_RANGE_MAP( (float)NoiseBar2->Maximum - (float)NoiseBar2->Value, 0.f, (float)NoiseBar2->Maximum, PERLIN_NOISE_RANGE_MIN, PERLIN_NOISE_RANGE_MAX) ;
+				 genInfo.prlnNoise3 = QUICK_RANGE_MAP( (float)NoiseBar3->Maximum - (float)NoiseBar3->Value, 0.f, (float)NoiseBar3->Maximum, PERLIN_NOISE_RANGE_MIN, PERLIN_NOISE_RANGE_MAX) ;
 				 genInfo.prlnNoise4 = 0;//QUICK_RANGE_MAP( (float)FloorBar->Value, 0.f, 100.f, FLOOR_GEN_RANGE_MIN, FLOOR_GEN_RANGE_MAX) ;
 				
 				 genInfo.gridRank = TerrainSize->Value;

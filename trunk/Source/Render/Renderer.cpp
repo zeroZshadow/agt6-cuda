@@ -170,7 +170,7 @@ void Renderer::_InitLighting()
 	glEnable(GL_LIGHT0);
 
 	GLfloat g_LighDir[] = { 0.0f, -0.5f, 0.5f, 0.0f }; 
-	GLfloat g_LightAmbient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+	GLfloat g_LightAmbient[] = { 0.4f, 0.4f, 0.4f, 1.0f };
 	GLfloat g_LightDiffuse[] = { 0.5f, 0.5f, 0.5f, 1.0f };
 	GLfloat g_LightSpecular[] = { 0.1f, 0.1f, 0.1f, 1.0f };
 	GLfloat g_LighAttenuation0 = 1.0f;
@@ -210,8 +210,8 @@ void Renderer::_LoadTextures()
 	//Load terrain textures
 	til::Image* image[3];
 	image[0] = til::TIL_Load("./Assets/Textures/RoughSoil.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);	//Side
-	image[1] = til::TIL_Load("./Assets/Textures/RoughSoil.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);		//Top
-	image[2] = til::TIL_Load("./Assets/Textures/RoughSoil.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);	//Side
+	image[1] = til::TIL_Load("./Assets/Textures/SoilTop.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);		//Top
+	image[2] = til::TIL_Load("./Assets/Textures/LeavesDead.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);	//Side
 
 	glGenTextures(3, m_Textures);
 
