@@ -84,6 +84,7 @@ namespace CudaTest {
 	private: System::Windows::Forms::TrackBar^  IsoValue;
 
 	private: System::Windows::Forms::Label^  label11;
+	private: System::Windows::Forms::Label^  label12;
 	private: System::Windows::Forms::CheckBox^  UpdateCheckbox;
 
 
@@ -135,6 +136,7 @@ namespace CudaTest {
 			this->IsoValue = (gcnew System::Windows::Forms::TrackBar());
 			this->label11 = (gcnew System::Windows::Forms::Label());
 			this->UpdateCheckbox = (gcnew System::Windows::Forms::CheckBox());
+			this->label12 = (gcnew System::Windows::Forms::Label());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->FloorBar))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->SphereBar))->BeginInit();
 			this->groupBox1->SuspendLayout();
@@ -328,7 +330,7 @@ namespace CudaTest {
 			this->WeightBar3->Name = L"WeightBar3";
 			this->WeightBar3->Size = System::Drawing::Size(168, 45);
 			this->WeightBar3->TabIndex = 9;
-			this->WeightBar3->TickFrequency = 10;
+			this->WeightBar3->TickFrequency = 15;
 			this->WeightBar3->Value = 200;
 			// 
 			// WeightBar2
@@ -338,7 +340,7 @@ namespace CudaTest {
 			this->WeightBar2->Name = L"WeightBar2";
 			this->WeightBar2->Size = System::Drawing::Size(168, 45);
 			this->WeightBar2->TabIndex = 9;
-			this->WeightBar2->TickFrequency = 10;
+			this->WeightBar2->TickFrequency = 15;
 			this->WeightBar2->Value = 300;
 			// 
 			// NoiseBar3
@@ -358,7 +360,7 @@ namespace CudaTest {
 			this->WeightBar1->Name = L"WeightBar1";
 			this->WeightBar1->Size = System::Drawing::Size(168, 45);
 			this->WeightBar1->TabIndex = 9;
-			this->WeightBar1->TickFrequency = 10;
+			this->WeightBar1->TickFrequency = 15;
 			this->WeightBar1->Value = 400;
 			// 
 			// NoiseBar2
@@ -389,7 +391,8 @@ namespace CudaTest {
 			this->IsoValue->Name = L"IsoValue";
 			this->IsoValue->Size = System::Drawing::Size(415, 45);
 			this->IsoValue->TabIndex = 9;
-			this->IsoValue->Value = 500;
+			this->IsoValue->TickFrequency = 10;
+			this->IsoValue->Value = 300;
 			this->IsoValue->Scroll += gcnew System::EventHandler(this, &GUI::TerrainSize_Scroll_1);
 			// 
 			// label11
@@ -400,6 +403,16 @@ namespace CudaTest {
 			this->label11->Size = System::Drawing::Size(50, 13);
 			this->label11->TabIndex = 5;
 			this->label11->Text = L"Iso value";
+			// 
+			// label12
+			// 
+			this->label12->AutoSize = true;
+			this->label12->ForeColor = System::Drawing::SystemColors::ControlDarkDark;
+			this->label12->Location = System::Drawing::Point(179, 412);
+			this->label12->Name = L"label12";
+			this->label12->Size = System::Drawing::Size(254, 13);
+			this->label12->TabIndex = 5;
+			this->label12->Text = L"*When you go over the middle, the sphere disapears";
 			// 
 			// UpdateCheckbox
 			// 
@@ -418,6 +431,7 @@ namespace CudaTest {
 			this->ClientSize = System::Drawing::Size(451, 517);
 			this->Controls->Add(this->UpdateCheckbox);
 			this->Controls->Add(this->groupBox2);
+			this->Controls->Add(this->label12);
 			this->Controls->Add(this->label11);
 			this->Controls->Add(this->groupBox1);
 			this->Controls->Add(this->button1);
