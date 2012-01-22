@@ -227,6 +227,8 @@ __global__ void cuda_CreateCube(GenerateInfo agInfo, float3 pos, float3* aVertLi
 			aVertList[dst+2] *= make_float3(0.05,0.05,0.05);
 			aIndexList[dst+2] = dst+2;
 		}
+
+		_sychThreads
 	}
 }
 
