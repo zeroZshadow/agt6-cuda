@@ -1,11 +1,25 @@
+
+
+//-- OpenGL implementation headers
+#include "windows.h"
+#include "glew.h"
+#include <gl\gl.h>			// Header File For The OpenGL32 Library
+#include <gl\glu.h>			// Header File For The GLu32 Library
+#include "glut.h"
+#include "freeglut_ext.h"
+//-- GL End
+#include <cutil_inline.h>
+#include <cuda_gl_interop.h>
+
+
 #include "CUDAMarcher.h"
 #include "CUDABlock.h"
 #include <malloc.h>
 #include "../Misc/Perlin.h"
 #include "Defines.h"
 
+
 extern "C" void load_tables_as_textures(unsigned int** aEdgeTable, unsigned int** aTriTable, unsigned int** aNrVertsTable);
-extern "C" void load_perlin_data(float** aDstCuda1, float* aData1, float** aDstCuda2, float* aData2, float** aDstCuda3, float* aData3, unsigned int dataSize);
 extern "C" void host_PerlinInitialize(unsigned int nSeed);
 extern "C" void host_InitPerlinData(int rank, int size);
 
@@ -16,6 +30,7 @@ CUDAMarcher::CUDAMarcher()
 	m_Blocks = 0;
 	mPerlin = new CPerlin();
 	mPerlin->Initialize(1);
+	
 }
 
 CUDAMarcher::~CUDAMarcher()
@@ -24,10 +39,9 @@ CUDAMarcher::~CUDAMarcher()
 	m_BlockCount = 0;
 }
 
-void CUDAMarcher::Init(int gridX, int gridY, int gridZ)
+void CUDAMarcher::PrepareTerrain()
 {
-	m_BlockCount = gridZ*gridY*gridX;
-	m_Blocks = new CUDABlock[m_BlockCount];
+	//cudaGLSetGLDevice( cutGetMaxGflopsDeviceId() );
 
 	mCudaEdgeTable = 0;
 	mCudaTriTable = 0;
@@ -40,63 +54,66 @@ void CUDAMarcher::Init(int gridX, int gridY, int gridZ)
 	load_tables_as_textures( &mCudaEdgeTable, &mCudaTriTable, &mCudaVertTable );
 
 	//-- Create and load perlin data
-#if 1
 	host_PerlinInitialize(0);
 	host_InitPerlinData(PERLIN_DATA_RANK, PERLIN_DATA_SIZE);
-#else
-	float*	perlin1, *perlin2, *perlin3;
-	int		rank		= PERLIN_DATA_RANK;
-	int		perlinBlockSize		= rank * rank * rank;
+}
 
-	perlin1 = (float*)malloc( sizeof( float ) * perlinBlockSize );
-	perlin2 = (float*)malloc( sizeof( float ) * perlinBlockSize );
-	perlin3 = (float*)malloc( sizeof( float ) * perlinBlockSize );
+void CUDAMarcher::GenerateTerrain(GenerateInfo gInfo)
+{
+	cudaGLSetGLDevice( cutGetMaxGflopsDeviceId() );
+	PrepareTerrain();
+	ClearTerrain();
+	mGenInfo = gInfo;
+	Init(4, 2, 2); //Rank, Blockcount
+	Cubemarch();
 
-	BuildPerlinData(perlin1,perlin2, perlin3, rank);
-	load_perlin_data( &mCudaPerlinDst1, perlin1, &mCudaPerlinDst2, perlin2, &mCudaPerlinDst3, perlin3, perlinBlockSize );
+}
 
-	free( perlin1 );
-	free( perlin2 );
-	free( perlin3 );
-#endif
+void CUDAMarcher::ClearTerrain()
+{
+	delete [] m_Blocks;
+}
 
-	//for(unsigned int i=0; i<m_BlockCount; ++i)
-	//{
-	//	m_Blocks[i].Init(i, 0 ,0);
-	//}
+void CUDAMarcher::Init(int gridX, int gridY, int gridZ)
+{
+	m_BlockCount = gridZ*gridY*gridX;
+	m_Blocks = new CUDABlock[m_BlockCount];
+
+
 	for (int x = 0; x < gridX; x++)
 	{
 		for (int y = 0; y < gridY; y++)
 		{
 			for (int z = 0; z < gridZ; z++)
 			{
-				m_Blocks[(x * gridY * gridZ) + y * gridZ + z].Init(x,-y,z);
+				m_Blocks[(x * gridY * gridZ) + y * gridZ + z].Init(x,y,z);
 			}
 		}
 	}
 }
 
-void CUDAMarcher::BuildPerlinData(float* data1, float* data2, float* data3, unsigned int rankSize)
+void CUDAMarcher::GenerateTileablePerlin(float* data, float scale, int rank)
 {
-	int		index			= 0;
-
-	//-- Quick and dirty pie
-#define PI				3.14159265358979323846264338327950288419716939937510582097494459072381640628620899862803482534211706798f
-	float	piDev				= PI * 5;
-	float	piDev2				= PI * 1;
-	float	piDev3				= PI * 0.1;
-#undef PI
-
-	for (int x = 0; x < rankSize; x++)
+	//mPerlin->Noise3((float)(x) / scale,(float)(y) / scale,(float)(z) / scale);
+	int indecies[8][3];
+	for (int x = 0; x < rank; x++)
 	{
-		for (int y = 0; y < rankSize; y++)
+		for (int y = 0; y < rank; y++)
 		{
-			for (int z = 0; z < rankSize; z++)
+			for (int z = 0; z < rank; z++)
 			{
-				index = (x * (int)rankSize * (int)rankSize) + (y * (int)rankSize) + z;
-				data1[ index ] = mPerlin->Noise3((float)(x) / piDev,(float)(y) / piDev,(float)(z) / piDev);
-				data2[ index ] = mPerlin->Noise3((float)(x + rankSize*2) / piDev2,(float)(y) / piDev2,(float)(z) / piDev2);
-				data3[ index ] = mPerlin->Noise3((float)(x + rankSize*4) / piDev3,(float)(y) / piDev3,(float)(z) / piDev3);
+				indecies[0][0] = x; indecies[0][1] = y; indecies[0][2] = z;
+				indecies[1][0] = x; indecies[1][1] = y; indecies[1][2] = z;
+				indecies[2][0] = x;	indecies[2][1] = y;	indecies[2][2] = z;
+				indecies[3][0] = x;	indecies[3][1] = y;	indecies[3][2] = z;
+				indecies[4][0] = x+rank; indecies[4][1] = y+rank; indecies[4][2] = z+rank;
+				indecies[5][0] = x; indecies[5][1] = y; indecies[5][2] = z;
+				indecies[6][0] = x; indecies[6][1] = y; indecies[6][2] = z;
+				indecies[7][0] = x; indecies[7][1] = y; indecies[7][2] = z;
+
+				
+				int index = (x * (int)rank * (int)rank) + (y * (int)rank) + z;
+				//data1[ index ] = 
 			}
 		}
 	}
@@ -107,7 +124,7 @@ void CUDAMarcher::Cubemarch()
 {
 	for(unsigned int i=0; i<m_BlockCount; ++i)
 	{
-		m_Blocks[i].Build();
+		m_Blocks[i].Build(&mGenInfo);
 	}
 }
 

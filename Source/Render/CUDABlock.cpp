@@ -7,7 +7,7 @@
 
 #include <cuda_gl_interop.h>
 
-extern "C" void launch_CreateCube(dim3 grid, dim3 threads, float3 aPos, float3* aVertList, float3* aNormList, GLuint* aIndexList);
+extern "C" void launch_CreateCube(GenerateInfo* agInfo, dim3 grid, dim3 threads, float3 aPos, float3* aVertList, float3* aNormList, GLuint* aIndexList);
 extern "C" void host_CreatePerlinData(dim3 grid, dim3 threads, float3 pos, int rank);
 
 CUDABlock::CUDABlock()
@@ -75,7 +75,6 @@ void CUDABlock::Init(float x, float y, float z)
 	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * MaxVertices, 0, GL_DYNAMIC_DRAW_ARB );
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Normals );
 	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * MaxVertices, 0, GL_DYNAMIC_DRAW_ARB );
-
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Indices );
 	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(GLuint) * MaxVertices, 0, GL_DYNAMIC_DRAW_ARB );
 
@@ -89,12 +88,10 @@ void CUDABlock::Init(float x, float y, float z)
 	cutilSafeCall(cudaGraphicsGLRegisterBuffer(&cuda_VBO_Normals, m_VBO_Normals, cudaGraphicsMapFlagsWriteDiscard));
 	cutilSafeCall(cudaGraphicsGLRegisterBuffer(&cuda_VBO_Indices, m_VBO_Indices, cudaGraphicsMapFlagsWriteDiscard));
 
-	
-
 }
 
 
-void CUDABlock::Build()
+void CUDABlock::Build(GenerateInfo* agInfo)
 {
 	//Map ALL THE VBO'S
 	size_t num_bytes;
@@ -107,14 +104,14 @@ void CUDABlock::Build()
 
 	m_FaceCount= (32*32*32*15); //TODO: change propperly
 
-	dim3 gridDim(4,4,4);
-	dim3 blockDim(8,8,8);
+	dim3 gridDim(16,16,1);
+	dim3 blockDim(2,2,32);
 
-	dim3 PerlingridDim(17,17,17);
-	dim3 PerlinblockDim(2,2,2);
-	
+	dim3 PerlingridDim(17,17,1);
+	dim3 PerlinblockDim(2,2,34);
+		
 	host_CreatePerlinData(PerlingridDim, PerlinblockDim, mPos, 33);
-	launch_CreateCube(gridDim, blockDim, mPos, cuda_Vertices, cuda_Normals, cuda_Indices);
+	launch_CreateCube(agInfo, gridDim, blockDim, mPos, cuda_Vertices, cuda_Normals, cuda_Indices);
 
 	//Unmap
 	cutilSafeCall(cudaGraphicsUnmapResources(1, &cuda_VBO_Vertices, 0));

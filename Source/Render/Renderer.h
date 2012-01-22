@@ -1,6 +1,7 @@
 #pragma once;
 
 #include "..\Misc\Effect.h"
+#include "Defines.h"
 
 class CPUMarcher;
 class CUDAMarcher;
@@ -17,6 +18,8 @@ public:
 	void				Resize(int w, int h);
 	
 	Camera*				GetCam(){return mCam;}				
+
+	void				GenerateTerrain(GenerateInfo agInfo);
 
 protected:
 	Renderer(int argc, char* argv[]);
