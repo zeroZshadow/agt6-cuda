@@ -84,7 +84,7 @@ void FragmentProg(	float4 position  : TEXCOORD0,
 					col3.xyzw * blend_weights.zzzz;
 	
 	//Combine
-	color = (ambient) + (blended_color * diffuseLight) + specular;
+	color = (blended_color* 0.2f) + (blended_color * diffuseLight) + specular;
 	color.w = 1;
 }
 
