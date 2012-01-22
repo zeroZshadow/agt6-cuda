@@ -129,15 +129,15 @@ __device__ void SMethodSphere(float* points, uint3 gridPos, float3 worldPos, flo
 	float z1 = worldPos.z - spherePos.z;
 	float z2 = (worldPos.z+1) - spherePos.z;
 
-	points[0] = 0.5*(radius - length(make_float3(x1,y1,z1) ) ) + SampleData1( make_uint3( gridPos.x,	gridPos.y,	gridPos.z ));
-	points[4] = 0.5*(radius - length(make_float3(x1,y1,z2) ) ) + SampleData1( make_uint3( gridPos.x,	gridPos.y,	gridPos.z+1 ));
-	points[3] = 0.5*(radius - length(make_float3(x1,y2,z1) ) ) + SampleData1( make_uint3( gridPos.x,	gridPos.y+1,	gridPos.z ));
-	points[7] = 0.5*(radius - length(make_float3(x1,y2,z2) ) ) + SampleData1( make_uint3( gridPos.x,	gridPos.y+1,	gridPos.z+1 ));
+	points[0] = (radius - length(make_float3(x1,y1,z1) ) ) + SampleData1( make_uint3( gridPos.x,	gridPos.y,	gridPos.z ));
+	points[4] = (radius - length(make_float3(x1,y1,z2) ) ) + SampleData1( make_uint3( gridPos.x,	gridPos.y,	gridPos.z+1 ));
+	points[3] = (radius - length(make_float3(x1,y2,z1) ) ) + SampleData1( make_uint3( gridPos.x,	gridPos.y+1,	gridPos.z ));
+	points[7] = (radius - length(make_float3(x1,y2,z2) ) ) + SampleData1( make_uint3( gridPos.x,	gridPos.y+1,	gridPos.z+1 ));
 
-	points[1] = 0.5*(radius - length(make_float3(x2,y1,z1) ) ) + SampleData1( make_uint3( gridPos.x+1,	gridPos.y,	gridPos.z ));
-	points[5] = 0.5*(radius - length(make_float3(x2,y1,z2) ) ) + SampleData1( make_uint3( gridPos.x+1,	gridPos.y,	gridPos.z+1));
-	points[6] = 0.5*(radius - length(make_float3(x2,y2,z2) ) ) + SampleData1( make_uint3( gridPos.x+1,	gridPos.y+1,	gridPos.z+1 ));
-	points[2] = 0.5*(radius - length(make_float3(x2,y2,z1) ) ) + SampleData1( make_uint3( gridPos.x+1,	gridPos.y+1,	gridPos.z ));
+	points[1] = (radius - length(make_float3(x2,y1,z1) ) ) + SampleData1( make_uint3( gridPos.x+1,	gridPos.y,	gridPos.z ));
+	points[5] = (radius - length(make_float3(x2,y1,z2) ) ) + SampleData1( make_uint3( gridPos.x+1,	gridPos.y,	gridPos.z+1));
+	points[6] = (radius - length(make_float3(x2,y2,z2) ) ) + SampleData1( make_uint3( gridPos.x+1,	gridPos.y+1,	gridPos.z+1 ));
+	points[2] = (radius - length(make_float3(x2,y2,z1) ) ) + SampleData1( make_uint3( gridPos.x+1,	gridPos.y+1,	gridPos.z ));
 
 }
 
