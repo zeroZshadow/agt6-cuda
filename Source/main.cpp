@@ -34,6 +34,11 @@ void CheckControlls(float aDT)
 	{
 		_cam->moveLoc(-1,0,0,10 * aDT);
 	}
+	if (GetAsyncKeyState(VK_SPACE))
+	{
+		_cam->setLoc(1.6f, 7.f, 5.f);
+		_cam->rotateLoc(40, 1,0,0);
+	}
 
 	if (GetAsyncKeyState('A'))
 	{
@@ -64,7 +69,7 @@ int main(int argc, char** argv)
 	return 0;
 }
 
-void updateProgram()
+void updateProgram(GenerateInfo agInfo)
 {
 	LARGE_INTEGER frequency;        // ticks per second
 	LARGE_INTEGER t1, t2;           // ticks
@@ -85,4 +90,9 @@ void updateProgram()
 void generateTerrain(GenerateInfo agInfo)
 {
 	_render->GenerateTerrain(agInfo);
+}
+
+void UpdateGenInfo(GenerateInfo agInfo)
+{
+	_render->UpdateGenInfo(agInfo);
 }

@@ -84,6 +84,8 @@ namespace CudaTest {
 	private: System::Windows::Forms::TrackBar^  IsoValue;
 
 	private: System::Windows::Forms::Label^  label11;
+	private: System::Windows::Forms::CheckBox^  UpdateCheckbox;
+
 
 
 
@@ -132,6 +134,7 @@ namespace CudaTest {
 			this->NoiseBar1 = (gcnew System::Windows::Forms::TrackBar());
 			this->IsoValue = (gcnew System::Windows::Forms::TrackBar());
 			this->label11 = (gcnew System::Windows::Forms::Label());
+			this->UpdateCheckbox = (gcnew System::Windows::Forms::CheckBox());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->FloorBar))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->SphereBar))->BeginInit();
 			this->groupBox1->SuspendLayout();
@@ -398,11 +401,22 @@ namespace CudaTest {
 			this->label11->TabIndex = 5;
 			this->label11->Text = L"Iso value";
 			// 
+			// UpdateCheckbox
+			// 
+			this->UpdateCheckbox->AutoSize = true;
+			this->UpdateCheckbox->Location = System::Drawing::Point(30, 355);
+			this->UpdateCheckbox->Name = L"UpdateCheckbox";
+			this->UpdateCheckbox->Size = System::Drawing::Size(84, 17);
+			this->UpdateCheckbox->TabIndex = 14;
+			this->UpdateCheckbox->Text = L"Auto-update";
+			this->UpdateCheckbox->UseVisualStyleBackColor = true;
+			// 
 			// GUI
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(451, 517);
+			this->Controls->Add(this->UpdateCheckbox);
 			this->Controls->Add(this->groupBox2);
 			this->Controls->Add(this->label11);
 			this->Controls->Add(this->groupBox1);

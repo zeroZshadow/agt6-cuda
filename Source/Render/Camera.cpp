@@ -59,6 +59,21 @@ void Camera::setView() {
 	glLoadMatrixf(viewmatrix);
 }
 
+void Camera::setLoc(float x, float y, float z)
+{
+	memset(Transform, 0, 16*sizeof(float));
+	Transform[0] = 1.0f;
+	Transform[5] = 1.0f;
+	Transform[10] = -1.0f;
+	Transform[15] = 1.0f;
+	Transform[12] = x; Transform[13] = y; Transform[14] = z;
+
+	Right=&Transform[0];
+	Up=&Transform[4];
+	Forward=&Transform[8];
+	Position=&Transform[12];
+}
+
 void Camera::moveLoc(float x, float y, float z, float distance) {
 	float dx=x*Transform[0] + y*Transform[4] + z*Transform[8];
 	float dy=x*Transform[1] + y*Transform[5] + z*Transform[9];
