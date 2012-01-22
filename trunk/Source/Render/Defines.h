@@ -6,6 +6,8 @@
 #define PERLIN_DATA_RANK3 53
 
 #define MARCHING_BLOCK_SIZE 32
+#define MARCHING_BLOCK_SIZE_POWER2 1024
+#define MARCHING_BLOCK_SIZE_POWER3 32768
 
 enum GenerationMethod
 {
@@ -37,6 +39,8 @@ struct GenerateInfo
 		prlnNoise2 = 1.0f;
 		prlnNoise3 = 0.5f;
 		prlnNoise4 = 0.25f;
+		gridRank = 2;
+		0.5;
 	}
 	GenerationMethod genType;
 	SampleMethod sampleType;
@@ -51,6 +55,8 @@ struct GenerateInfo
 	float prlnNoise2;
 	float prlnNoise3;
 	float prlnNoise4;
+	int		gridRank;
+	float	iso;
 };
 
 #define PERLIN_WEIGHT_RANGE_MIN 0.f

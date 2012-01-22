@@ -73,7 +73,7 @@ void CUDAMarcher::GenerateTerrain(GenerateInfo gInfo)
 
 void CUDAMarcher::ClearTerrain()
 {
-	delete [] m_Blocks;
+	//delete [] m_Blocks;
 }
 
 void CUDAMarcher::Init(int gridX, int gridY, int gridZ)

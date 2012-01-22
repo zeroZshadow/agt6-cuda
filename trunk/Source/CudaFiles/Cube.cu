@@ -1,3 +1,6 @@
+////---CUda marching. 
+////* compacting voxel code is taken from 
+
 #include <cutil_inline.h>
 #include <cuda_runtime_api.h>
 #include <thrust/device_vector.h>
@@ -83,20 +86,20 @@ __device__ float DensityCaves( uint3 pos)
 
 __device__ float DensityWithFloor( uint3 pos, float floor)
 {
-	return SampleData1( pos ) + SampleData2( pos ) * 0.1f + SampleData3( pos ) * 0.05f;// - (pos.y * floorMultiplier);
+	return SampleData1( pos ) + (floor * 0.05f);
 }
 
 __device__ float DensitySphere( uint3 pos, float radius)
 {
 	float dens = length( make_float3(pos) - make_float3(32,32,32));
 	dens = 3 - dens/9;
-	return SampleData1( pos ) + SampleData2( pos ) * 0.25f + SampleData3( pos ) * 0.1f + dens;
+	return SampleData1( pos ) + dens;
 }
 
 __device__
-float3 InterpVertexPos(float3 p0, float3 p1, float f0, float f1)
+float3 InterpVertexPos(float iso, float3 p0, float3 p1, float f0, float f1)
 {
-    float t = clamp(f0 / (f0 - f1), 0.0f , 1.0f);
+    float t = ((iso - f0) / (f1 - f0));//, 0.0f , 1.0f);
 	return lerp(p0, p1, t);
 } 
 
@@ -107,29 +110,85 @@ float3 InterpVertexPos2(float3 p0, float3 p1, float f0, float f1)
 	return lerp(p0, p1, t);
 }
 
-__global__ void cuda_CreatePerlin(float3 pos, int rank, float* aPerlin1, float* aPerlin2, float* aPerlin3)
+//-- Compacting code is partially from the NVidia examples
+__global__ void cuda_ClassifyVoxel(GenerateInfo agInfo, float3 pos, uint* voxelVertCnt, 
+								   uint* voxelOccupied)
 {
-	#define PI				3.14159265358979323846264338327950288419716939937510582097494459072381640628620899862803482534211706798f
-		float	piDev1				= PI * 5;
-		float	piDev2				= PI * 1;
-		float	piDev3				= PI * 0.1;
-	#undef PI
+	int3 gridPos;
+	gridPos.x = ( blockDim.x * blockIdx.x) + threadIdx.x;
+	gridPos.y = ( blockDim.y * blockIdx.y) + threadIdx.y;
+	gridPos.z = ( blockDim.z * blockIdx.z) + threadIdx.z;
+	float y = gridPos.y + pos.y * MARCHING_BLOCK_SIZE;
+	int i = (gridPos.x + (gridPos.y * blockDim.x * gridDim.x)) + (gridPos.z * blockDim.x * gridDim.x * blockDim.y * gridDim.y);
 
-	int column = ( blockDim.x * blockIdx.x) + threadIdx.x;
-	int row = ( blockDim.y * blockIdx.y) + threadIdx.y;
-	int depth = ( blockDim.z * blockIdx.z) + threadIdx.z;
-	
-	int voxel = (column + (row * blockDim.x * gridDim.x)) + (depth * blockDim.x * gridDim.x * blockDim.y * gridDim.y);
-	float3 index = make_float3(column+(pos.x*MARCHING_BLOCK_SIZE), row+(pos.y*MARCHING_BLOCK_SIZE), depth+(pos.z*MARCHING_BLOCK_SIZE));
-	
-	aPerlin1[voxel] = Noise3(index.x / piDev1, index.y / piDev1, index.z / piDev1);
-	aPerlin2[voxel] = Noise3((index.x+rank*2) / piDev2, index.y / piDev2, index.z / piDev2);
-	aPerlin3[voxel] = Noise3((index.x+rank*4) / piDev3, index.y / piDev3, index.z / piDev3);
+	float points[8];
+	int bitmap = 0;
+
+	points[0] = DensityWithFloor( make_uint3( gridPos.x,	gridPos.y,	gridPos.z ),	0.03f) - ((float)y  * 0.03f) +1;
+	points[1] = DensityWithFloor( make_uint3( gridPos.x+1,	gridPos.y,	gridPos.z ),	0.03f) - ((float)y * 0.03f) +1;
+	points[2] = DensityWithFloor( make_uint3( gridPos.x+1,	gridPos.y+1,	gridPos.z ),	0.03f) - ((float)(y+1) * 0.03f)+1;
+	points[3] = DensityWithFloor( make_uint3( gridPos.x,	gridPos.y+1,	gridPos.z ),	0.03f) - ((float)(y+1) * 0.03f)+1;
+	points[4] = DensityWithFloor( make_uint3( gridPos.x,	gridPos.y,	gridPos.z+1 ),	0.03f) - ((float)y * 0.03f)+1;
+	points[5] = DensityWithFloor( make_uint3( gridPos.x+1,	gridPos.y,	gridPos.z+1) ,	0.03f) - ((float)y * 0.03f)+1;
+	points[6] = DensityWithFloor( make_uint3( gridPos.x+1,	gridPos.y+1,	gridPos.z+1 ),	0.03f) - ((float)(y+1) * 0.03f)+1;
+	points[7] = DensityWithFloor( make_uint3( gridPos.x,	gridPos.y+1,	gridPos.z+1 ),	0.03f) - ((float)(y+1) * 0.03f)+1;
+
+	for (int ii = 0; ii < 8; ii++)
+	{
+		if (points[ii] < agInfo.iso)
+		{
+			bitmap ^= 1<<ii;						
+		}
+	}
+
+    // read number of vertices from texture
+    uint numVerts = tex1Dfetch(tNRVertsTex, bitmap);
+	voxelVertCnt[i] = numVerts;
+    voxelOccupied[i] = (numVerts > 0);
+}
+
+extern "C" 
+void launch_ClassifyVoxel( dim3 grid, dim3 threads, GenerateInfo agInfo, float3 pos, 
+						  uint* voxelVertCnt, uint *voxelOccupied)
+{
+    // calculate number of vertices need per voxel
+    cuda_ClassifyVoxel<<<grid, threads>>>(agInfo, pos, voxelVertCnt, voxelOccupied);
+    cutilCheckMsg("classifyVoxel failed");
+}
+
+//// compact voxel array
+//__global__ void
+//cuda_CompactVoxels(uint *compactedVoxelArray, uint *voxelOccupied, uint *voxelOccupiedScan, uint numVoxels)
+//{
+//    uint blockId = __mul24(blockIdx.y, gridDim.x) + blockIdx.x;
+//    uint i = __mul24(blockId, blockDim.x) + threadIdx.x;
+//
+//    if (voxelOccupied[i] && (i < numVoxels)) {
+//        compactedVoxelArray[ voxelOccupiedScan[i] ] = i;
+//    }
+//}
+//
+//extern "C" void 
+//launch_compactVoxels(dim3 grid, dim3 threads, uint *compactedVoxelArray, uint *voxelOccupied, uint *voxelOccupiedScan, uint numVoxels)
+//{
+//    compactVoxels<<<grid, threads>>>(compactedVoxelArray, voxelOccupied, 
+//                                     voxelOccupiedScan, numVoxels);
+//    cutilCheckMsg("compactVoxels failed");
+//}
+
+
+__device__ uint3 calcGridPos(uint i)
+{
+	uint3 gridPos;
+	gridPos.x = i % MARCHING_BLOCK_SIZE;
+	gridPos.y = i % MARCHING_BLOCK_SIZE;
+	gridPos.z = i % MARCHING_BLOCK_SIZE;
 }
 
 __global__ void cuda_CreateCube(GenerateInfo agInfo, float3 pos, float3* aVertList, float3* aNormList, unsigned int* aIndexList)
 
 {
+	float iso = 0.9;
 	int column = ( blockDim.x * blockIdx.x) + threadIdx.x;
 	int row = ( blockDim.y * blockIdx.y) + threadIdx.y;
 	int depth = ( blockDim.z * blockIdx.z) + threadIdx.z;
@@ -161,18 +220,19 @@ __global__ void cuda_CreateCube(GenerateInfo agInfo, float3 pos, float3* aVertLi
 	points[6] = DensityWithFloor( make_uint3( column+1,	row+1,	depth+1 ),	0.03f) - ((float)(y+1) * 0.03f)+1;
 	points[7] = DensityWithFloor( make_uint3( column,	row+1,	depth+1 ),	0.03f) - ((float)(y+1) * 0.03f)+1;
 
+
+
 	//--Create lookup bitmap to find the edge table
 	for (int i = 0; i < 8; i++)
 	{
 		//points[i] -= column * 0.1;
-		if (points[i] > 0)
+		if (points[i] < iso)
 		{
 			bitmap ^= 1<<i;						
 		}
 	}
 
 	//-- Creating triangles
-	unsigned int edge = tex1Dfetch(tEdgeTex, bitmap);
 	unsigned int vertNr = tex1Dfetch(tNRVertsTex ,bitmap);
 	if (vertNr >= 255 || vertNr <= 0)
 	{
@@ -192,27 +252,27 @@ __global__ void cuda_CreateCube(GenerateInfo agInfo, float3 pos, float3* aVertLi
 		pCube[7] = make_float3(0, 1, 1);
 		
 
-	float3 vertlist[12];
+		float3 vertlist[12];
 
-    vertlist[0] = InterpVertexPos( pCube[0], pCube[1], points[0], points[1]);
-    vertlist[1] = InterpVertexPos( pCube[1], pCube[2], points[1], points[2]);
-    vertlist[2] = InterpVertexPos( pCube[2], pCube[3], points[2], points[3]);
-    vertlist[3] = InterpVertexPos( pCube[3], pCube[0], points[3], points[0]);
+		vertlist[0] = InterpVertexPos(iso, pCube[0], pCube[1], points[0], points[1]);
+		vertlist[1] = InterpVertexPos(iso, pCube[1], pCube[2], points[1], points[2]);
+		vertlist[2] = InterpVertexPos(iso, pCube[2], pCube[3], points[2], points[3]);
+		vertlist[3] = InterpVertexPos(iso, pCube[3], pCube[0], points[3], points[0]);
 
-	vertlist[4] = InterpVertexPos( pCube[4], pCube[5], points[4], points[5]);
-    vertlist[5] = InterpVertexPos( pCube[5], pCube[6], points[5], points[6]);
-    vertlist[6] = InterpVertexPos( pCube[6], pCube[7], points[6], points[7]);
-    vertlist[7] = InterpVertexPos( pCube[7], pCube[4], points[7], points[4]);
+		vertlist[4] = InterpVertexPos(iso, pCube[4], pCube[5], points[4], points[5]);
+		vertlist[5] = InterpVertexPos(iso, pCube[5], pCube[6], points[5], points[6]);
+		vertlist[6] = InterpVertexPos(iso, pCube[6], pCube[7], points[6], points[7]);
+		vertlist[7] = InterpVertexPos(iso, pCube[7], pCube[4], points[7], points[4]);
 
-	vertlist[8] = InterpVertexPos( pCube[0], pCube[4], points[0], points[4]);
-    vertlist[9] = InterpVertexPos( pCube[1], pCube[5], points[1], points[5]);
-    vertlist[10] = InterpVertexPos( pCube[2], pCube[6], points[2], points[6]);
-    vertlist[11] = InterpVertexPos( pCube[3], pCube[7], points[3], points[7]);
+		vertlist[8] = InterpVertexPos(iso, pCube[0], pCube[4], points[0], points[4]);
+		vertlist[9] = InterpVertexPos(iso, pCube[1], pCube[5], points[1], points[5]);
+		vertlist[10] = InterpVertexPos(iso, pCube[2], pCube[6], points[2], points[6]);
+		vertlist[11] = InterpVertexPos(iso, pCube[3], pCube[7], points[3], points[7]);
 
 		for (int i = 0; i < vertNr; i+=3)
 		{
 			int dst = vertex + i;
-			aVertList[dst] = vertlist[tex1Dfetch(tTriTex, (bitmap * 16) + i +2)];
+			aVertList[dst] = vertlist[tex1Dfetch(tTriTex, (bitmap * 16) + i +0)];
 			aVertList[dst] += make_float3(x,y,z);
 			aVertList[dst] *= make_float3(0.05,0.05,0.05);
 			aIndexList[dst] = dst;
@@ -222,47 +282,17 @@ __global__ void cuda_CreateCube(GenerateInfo agInfo, float3 pos, float3* aVertLi
 			aVertList[dst+1] *= make_float3(0.05,0.05,0.05);
 			aIndexList[dst+1] = dst+1;
 
-			aVertList[dst+2] = vertlist[tex1Dfetch(tTriTex, (bitmap * 16) + i + 0)];
+			aVertList[dst+2] = vertlist[tex1Dfetch(tTriTex, (bitmap * 16) + i + 2)];
 			aVertList[dst+2] += make_float3(x,y,z);
 			aVertList[dst+2] *= make_float3(0.05,0.05,0.05);
 			aIndexList[dst+2] = dst+2;
+
+			float3 edge1 = aVertList[dst+1] - aVertList[dst];
+			float3 edge2 = aVertList[dst+2] - aVertList[dst];
+			aNormList[dst] = normalize(cross(edge1, edge2));
+			aNormList[dst+1] = aNormList[dst];
+			aNormList[dst+2] = aNormList[dst];			
 		}
-
-
-	}
-}
-
-__global__ void cuda_generateNormals(float3* aVertList, float3* aNormList, unsigned int* aIndexList)
-{
-	int column = ( blockDim.x * blockIdx.x) + threadIdx.x;
-	int row = ( blockDim.y * blockIdx.y) + threadIdx.y;
-	int depth = ( blockDim.z * blockIdx.z) + threadIdx.z;
-
-	int vertex = (column + (row * blockDim.x * gridDim.x)) + (depth * blockDim.x * gridDim.x * blockDim.y * gridDim.y);
-	vertex *= 15;
-	//int triangle = vertex;
-
-	//-- Generate normals
-	float3 vec1, vec2, vec3;
-	float3 normal;
-	
-	for (int i = vertex; i < vertex+15; i+=3)
-	{	
-		if(aIndexList[i] == 0 && aIndexList[i+1] == 0 && aIndexList[i+2] ==0)
-		{continue;}
-
-		vec1 = aVertList[i];
-		vec2 = aVertList[i+1];
-		vec3 = aVertList[i+2];
-
-		float3 edge1 = vec2 - vec1;
-		float3 edge2 = vec3 - vec1;
-		normal = cross(edge1, edge2);
-		normal = normalize(normal);
-
-		aNormList[i] = normal;
-		aNormList[i+1] = normal;
-		aNormList[i+2] = normal;
 	}
 }
 
@@ -270,14 +300,9 @@ __global__ void cuda_generateNormals(float3* aVertList, float3* aNormList, unsig
 extern "C"
 void launch_CreateCube(GenerateInfo* agInfo, dim3 grid, dim3 threads, float3 aPos, float3* aVertList, float3* aNormList, unsigned int* aIndexList)
 {
-	//Here you normally run:
-	
+	//Here you normally run:	
 	cuda_CreateCube<<<grid, threads>>>(*agInfo, aPos, aVertList, aNormList, aIndexList);
 	cutilCheckMsg("cuda_CreateCube failed");
-	cuda_generateNormals<<<grid, threads>>>(aVertList, aNormList, aIndexList);
-	cutilCheckMsg("cuda_CreateCube failed");
-	
-
 }
 
 extern "C"
@@ -293,25 +318,7 @@ void host_InitPerlinData(int rank, int size)
     cutilSafeCall(cudaMalloc((void**) &dataPerlin3, dataSize*sizeof(float)));
 }
 
-extern "C"
-void host_CreatePerlinData(dim3 grid, dim3 threads, float3 pos, int rank)
-{
-	cudaChannelFormatDesc cD = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
-	
-	//Unbind Textures
-	cutilSafeCall(cudaUnbindTexture(tPerlin1));
-	cutilSafeCall(cudaUnbindTexture(tPerlin2));
-	cutilSafeCall(cudaUnbindTexture(tPerlin3));
-	
-	//Fill perlins
-	cuda_CreatePerlin<<<grid, threads>>>(pos, rank, dataPerlin1, dataPerlin2, dataPerlin3);
-    cutilCheckMsg("cuda_CreateCube failed");
 
-    //Bind as texture
-	cutilSafeCall(cudaBindTexture(0, tPerlin1, dataPerlin1, cD) );
-	cutilSafeCall(cudaBindTexture(0, tPerlin2, dataPerlin2, cD) );
-	cutilSafeCall(cudaBindTexture(0, tPerlin3, dataPerlin3, cD) );
-}
 
 ////
 //This is old code used for reference!!!!!!!!!!!!!!!!!!!!!
@@ -513,4 +520,58 @@ __device__ float Noise3(float x, float y, float z)
 	float v = v0 - wz*(v0 - v1);
 
 	return v;	
+}
+
+
+
+//-- Taken from the NVidia cuda example
+extern "C" void ThrustScanWrapper(unsigned int* output, unsigned int* input, unsigned int numElements)
+{
+    thrust::exclusive_scan(thrust::device_ptr<unsigned int>(input), 
+                           thrust::device_ptr<unsigned int>(input + numElements),
+                           thrust::device_ptr<unsigned int>(output));
+}
+
+
+
+
+__global__ void cuda_CreatePerlin(GenerateInfo agInfo, float3 pos, int rank, float* aPerlin1, float* aPerlin2, float* aPerlin3)
+{
+	#define PI				3.14159265358979323846264338327950288419716939937510582097494459072381640628620899862803482534211706798f
+		float	piDev1				= PI * agInfo.prlnNoise1;
+		float	piDev2				= PI * agInfo.prlnNoise2;
+		float	piDev3				= PI * agInfo.prlnNoise3;
+	#undef PI
+
+	int column = ( blockDim.x * blockIdx.x) + threadIdx.x;
+	int row = ( blockDim.y * blockIdx.y) + threadIdx.y;
+	int depth = ( blockDim.z * blockIdx.z) + threadIdx.z;
+	
+	int voxel = (column + (row * blockDim.x * gridDim.x)) + (depth * blockDim.x * gridDim.x * blockDim.y * gridDim.y);
+	float3 index = make_float3(column+(pos.x*MARCHING_BLOCK_SIZE), row+(pos.y*MARCHING_BLOCK_SIZE), depth+(pos.z*MARCHING_BLOCK_SIZE));
+	
+	aPerlin1[voxel] = Noise3(index.x / piDev1, index.y / piDev1, index.z / piDev1) * agInfo.prlnWeight1;
+	aPerlin1[voxel] += Noise3((index.x+rank*2) / piDev2, index.y / piDev2, index.z / piDev2) * agInfo.prlnWeight2;
+	aPerlin1[voxel] += Noise3((index.x+rank*4) / piDev3, index.y / piDev3, index.z / piDev3) * agInfo.prlnWeight3;
+}
+
+
+extern "C"
+void host_CreatePerlinData(GenerateInfo* agInfo, dim3 grid, dim3 threads, float3 pos, int rank)
+{
+	cudaChannelFormatDesc cD = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
+	
+	//Unbind Textures
+	cutilSafeCall(cudaUnbindTexture(tPerlin1));
+	cutilSafeCall(cudaUnbindTexture(tPerlin2));
+	cutilSafeCall(cudaUnbindTexture(tPerlin3));
+	
+	//Fill perlins
+	cuda_CreatePerlin<<<grid, threads>>>(*agInfo, pos, rank, dataPerlin1, dataPerlin2, dataPerlin3);
+    cutilCheckMsg("cuda_CreateCube failed");
+
+    //Bind as texture
+	cutilSafeCall(cudaBindTexture(0, tPerlin1, dataPerlin1, cD) );
+	cutilSafeCall(cudaBindTexture(0, tPerlin2, dataPerlin2, cD) );
+	cutilSafeCall(cudaBindTexture(0, tPerlin3, dataPerlin3, cD) );
 }
