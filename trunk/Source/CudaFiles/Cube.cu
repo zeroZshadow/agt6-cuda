@@ -694,7 +694,7 @@ void host_CreatePerlinData(GenerateInfo* agInfo, dim3 grid, dim3 threads, float3
 	
 	//Fill perlins
 	cuda_CreatePerlin<<<grid, threads>>>(*agInfo, pos, rank, dataPerlin1, dataPerlin2, dataPerlin3);
-    cutilCheckMsg("cuda_CreateCube failed");
+    cutilCheckMsg("cuda_CreatePerlin failed");
 
     //Bind as texture
 	cutilSafeCall(cudaBindTexture(0, tPerlin1, dataPerlin1, cD) );

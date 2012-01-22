@@ -93,11 +93,11 @@ void CUDABlock::Init(float x, float y, float z)
 	//Setup VBO's
 	m_FaceCount = 0;
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Vertices );
-	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * 1, 0, GL_DYNAMIC_DRAW_ARB );
+	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * 1, 0, GL_STATIC_DRAW_ARB );
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Normals );
-	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * 1, 0, GL_DYNAMIC_DRAW_ARB );
+	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * 1, 0, GL_STATIC_DRAW_ARB );
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Indices );
-	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(GLuint) * 1, 0, GL_DYNAMIC_DRAW_ARB );
+	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(GLuint) * 1, 0, GL_STATIC_DRAW_ARB );
 
 	if(glGetError() != GL_NO_ERROR)	{
 		printf("Error creating VBOs");
@@ -108,7 +108,7 @@ void CUDABlock::Init(float x, float y, float z)
 	cutilSafeCall(cudaGraphicsGLRegisterBuffer(&cuda_VBO_Indices, m_VBO_Indices, cudaGraphicsMapFlagsWriteDiscard));
 }
 
-void CUDABlock::ResizeVBOs(int vertices, int indices)
+bool CUDABlock::ResizeVBOs(int vertices, int indices)
 {
 	m_FaceCount = indices;
 
@@ -118,20 +118,34 @@ void CUDABlock::ResizeVBOs(int vertices, int indices)
 	cutilSafeCall(cudaGraphicsUnregisterResource(cuda_VBO_Indices));
 
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Vertices );
-	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * vertices, 0, GL_DYNAMIC_DRAW_ARB );
+	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * vertices, 0, GL_STATIC_DRAW_ARB );
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Normals );
-	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * vertices, 0, GL_DYNAMIC_DRAW_ARB );
+	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * vertices, 0, GL_STATIC_DRAW_ARB );
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Indices );
-	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(GLuint) * vertices, 0, GL_DYNAMIC_DRAW_ARB );
+	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(GLuint) * vertices, 0, GL_STATIC_DRAW_ARB );
+
+	if(glGetError() == GL_OUT_OF_MEMORY)
+	{
+		printf("> Ran out of memory\n");
+		m_FaceCount = 0;
+		glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Vertices );
+		glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * 1, 0, GL_STATIC_DRAW_ARB );
+		glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Normals );
+		glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * 1, 0, GL_STATIC_DRAW_ARB );
+		glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Indices );
+		glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(GLuint) * 1, 0, GL_STATIC_DRAW_ARB );
+		return false;
+	}
 
 	//Register
-	cutilSafeCall(cudaGraphicsGLRegisterBuffer(&cuda_VBO_Vertices, m_VBO_Vertices, cudaGraphicsMapFlagsWriteDiscard));
-	cutilSafeCall(cudaGraphicsGLRegisterBuffer(&cuda_VBO_Normals, m_VBO_Normals, cudaGraphicsMapFlagsWriteDiscard));
-	cutilSafeCall(cudaGraphicsGLRegisterBuffer(&cuda_VBO_Indices, m_VBO_Indices, cudaGraphicsMapFlagsWriteDiscard));
+	if(cudaGraphicsGLRegisterBuffer(&cuda_VBO_Vertices, m_VBO_Vertices, cudaGraphicsMapFlagsWriteDiscard) == cudaErrorMemoryAllocation) {m_FaceCount = 0; return false;}
+	if(cudaGraphicsGLRegisterBuffer(&cuda_VBO_Normals, m_VBO_Normals, cudaGraphicsMapFlagsWriteDiscard) == cudaErrorMemoryAllocation) {m_FaceCount = 0; return false;}
+	if(cudaGraphicsGLRegisterBuffer(&cuda_VBO_Indices, m_VBO_Indices, cudaGraphicsMapFlagsWriteDiscard) == cudaErrorMemoryAllocation) {m_FaceCount = 0; return false;}
+	return true;
 }
 
 
-void CUDABlock::Build(GenerateInfo* agInfo)
+bool CUDABlock::Build(GenerateInfo* agInfo)
 {
 	//Generate perlin textures
 	dim3 PerlingridDim(17,17,1);
@@ -155,8 +169,8 @@ void CUDABlock::Build(GenerateInfo* agInfo)
 	uint activeVoxels = lastElement + lastScanElement;
 
 	if (activeVoxels==0) {
-		ResizeVBOs(1, 0);
-		return;
+		// return if there are no full voxels
+		return ResizeVBOs(1, 0);
 	}
 
 	int threads = 128;
@@ -184,7 +198,10 @@ void CUDABlock::Build(GenerateInfo* agInfo)
 	
 
 	//Resize VBO's
-	ResizeVBOs(totalVerts, totalVerts);
+	if(!ResizeVBOs(totalVerts, totalVerts)){
+		m_FaceCount = 0;
+		return false;
+	}
 
 	//Map ALL THE VBO'S
 	size_t num_bytes;
@@ -219,6 +236,8 @@ void CUDABlock::Build(GenerateInfo* agInfo)
 	cutilSafeCall(cudaGraphicsUnmapResources(1, &cuda_VBO_Vertices, 0));
 	cutilSafeCall(cudaGraphicsUnmapResources(1, &cuda_VBO_Normals, 0));
 	cutilSafeCall(cudaGraphicsUnmapResources(1, &cuda_VBO_Indices, 0));
+
+	return true;
 }
 
 #define BUFFER_OFFSET(i) ((char*)0 + (i))

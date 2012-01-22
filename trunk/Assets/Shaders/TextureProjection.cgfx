@@ -1,6 +1,6 @@
 
 float3 gEyePosition;
-float3 gBlockPosition;
+float3 gBlockPosition = {0,0,0};
 
 float2 tex_scale = {0.5f,0.5f};
 
@@ -71,9 +71,9 @@ void FragmentProg(	float4 position  : TEXCOORD0,
 	blend_weights /= (blend_weights.x + blend_weights.y + blend_weights.z ).xxx;
 	
 	float4 blended_color;
-	float2 coord1 = P.yz * tex_scale;
-	float2 coord2 = P.zx * tex_scale;
-	float2 coord3 = P.xy * tex_scale;
+	float2 coord1 = (P.yz + blockPosition.yz) * tex_scale;
+	float2 coord2 = (P.zx + blockPosition.zx) * tex_scale;
+	float2 coord3 = (P.xy + blockPosition.xy) * tex_scale;
 	
 	float4 col1 = tex2D(ProjSampler1, coord1);
 	float4 col2 = tex2D(ProjSampler2, coord2);
