@@ -378,7 +378,6 @@ __global__ void cuda_CreateCube(GenerateInfo agInfo, float3 pos, float3* aVertLi
 
 	int vertex = (column + (row * blockDim.x * gridDim.x)) + (depth * blockDim.x * gridDim.x * blockDim.y * gridDim.y);
 	vertex *= 15;
-	int triangle = vertex;
 
 	int x = column + pos.x * MARCHING_BLOCK_SIZE;
 	int y = row + pos.y * MARCHING_BLOCK_SIZE;
