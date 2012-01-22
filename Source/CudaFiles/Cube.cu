@@ -104,30 +104,54 @@ float3 InterpVertexPos2(float3 p0, float3 p1, float f0, float f1)
 	return lerp(p0, p1, t);
 }
 
-__device__ void SMethodFloor(float* points, uint3 gridPos, float floor, float y)
+__device__ void SMethodFloor(float* points, uint3 gridPos, float floor, float y, float fW)
 {
 
-	points[0] = floor-y + SampleData1( make_uint3( gridPos.x,	gridPos.y,	gridPos.z ));
-	points[4] = floor-y + SampleData1( make_uint3( gridPos.x,	gridPos.y,	gridPos.z+1 ));
-	points[3] = floor-(y+1) + SampleData1( make_uint3( gridPos.x,	gridPos.y+1,	gridPos.z ));
-	points[7] = floor-(y+1) + SampleData1( make_uint3( gridPos.x,	gridPos.y+1,	gridPos.z+1 ));
+	points[0] = fW*(floor-y) + SampleData1( make_uint3( gridPos.x,	gridPos.y,	gridPos.z ));
+	points[4] = fW*(floor-y) + SampleData1( make_uint3( gridPos.x,	gridPos.y,	gridPos.z+1 ));
+	points[3] = fW*(floor-(y+1)) + SampleData1( make_uint3( gridPos.x,	gridPos.y+1,	gridPos.z ));
+	points[7] = fW*(floor-(y+1)) + SampleData1( make_uint3( gridPos.x,	gridPos.y+1,	gridPos.z+1 ));
 
-	points[1] = floor-y + SampleData1( make_uint3( gridPos.x+1,	gridPos.y,	gridPos.z ));
-	points[5] = floor-y + SampleData1( make_uint3( gridPos.x+1,	gridPos.y,	gridPos.z+1));
-	points[6] = floor-(y+1) + SampleData1( make_uint3( gridPos.x+1,	gridPos.y+1,	gridPos.z+1 ));
-	points[2] = floor-(y+1) + SampleData1( make_uint3( gridPos.x+1,	gridPos.y+1,	gridPos.z ));
+	points[1] = fW*(floor-y) + SampleData1( make_uint3( gridPos.x+1,	gridPos.y,	gridPos.z ));
+	points[5] = fW*(floor-y) + SampleData1( make_uint3( gridPos.x+1,	gridPos.y,	gridPos.z+1));
+	points[6] = fW*(floor-(y+1)) + SampleData1( make_uint3( gridPos.x+1,	gridPos.y+1,	gridPos.z+1 ));
+	points[2] = fW*(floor-(y+1)) + SampleData1( make_uint3( gridPos.x+1,	gridPos.y+1,	gridPos.z ));
 
 }
 
 
-__device__ void SMethodSphere(float* points, float3 pos, float radius)
+__device__ void SMethodSphere(float* points, uint3 gridPos, float3 worldPos, float radius, float3 spherePos)
 {
+	float x1 = worldPos.x - spherePos.x;
+	float x2 = (worldPos.x+1) - spherePos.x;;
+	float y1 = worldPos.y - spherePos.y;
+	float y2 = (worldPos.y+1) - spherePos.y;
+	float z1 = worldPos.z - spherePos.z;
+	float z2 = (worldPos.z+1) - spherePos.z;
+
+	points[0] = 0.5*(radius - length(make_float3(x1,y1,z1) ) ) + SampleData1( make_uint3( gridPos.x,	gridPos.y,	gridPos.z ));
+	points[4] = 0.5*(radius - length(make_float3(x1,y1,z2) ) ) + SampleData1( make_uint3( gridPos.x,	gridPos.y,	gridPos.z+1 ));
+	points[3] = 0.5*(radius - length(make_float3(x1,y2,z1) ) ) + SampleData1( make_uint3( gridPos.x,	gridPos.y+1,	gridPos.z ));
+	points[7] = 0.5*(radius - length(make_float3(x1,y2,z2) ) ) + SampleData1( make_uint3( gridPos.x,	gridPos.y+1,	gridPos.z+1 ));
+
+	points[1] = 0.5*(radius - length(make_float3(x2,y1,z1) ) ) + SampleData1( make_uint3( gridPos.x+1,	gridPos.y,	gridPos.z ));
+	points[5] = 0.5*(radius - length(make_float3(x2,y1,z2) ) ) + SampleData1( make_uint3( gridPos.x+1,	gridPos.y,	gridPos.z+1));
+	points[6] = 0.5*(radius - length(make_float3(x2,y2,z2) ) ) + SampleData1( make_uint3( gridPos.x+1,	gridPos.y+1,	gridPos.z+1 ));
+	points[2] = 0.5*(radius - length(make_float3(x2,y2,z1) ) ) + SampleData1( make_uint3( gridPos.x+1,	gridPos.y+1,	gridPos.z ));
 
 }
 
-__device__ void SMethodCaves(float* points, float3 pos)
+__device__ void SMethodCaves(float* points, uint3 gridPos)
 {
+	points[0] = SampleData1( make_uint3( gridPos.x,	gridPos.y,	gridPos.z ));
+	points[4] = SampleData1( make_uint3( gridPos.x,	gridPos.y,	gridPos.z+1 ));
+	points[3] = SampleData1( make_uint3( gridPos.x,	gridPos.y+1,	gridPos.z ));
+	points[7] = SampleData1( make_uint3( gridPos.x,	gridPos.y+1,	gridPos.z+1 ));
 
+	points[1] = SampleData1( make_uint3( gridPos.x+1,	gridPos.y,	gridPos.z ));
+	points[5] = SampleData1( make_uint3( gridPos.x+1,	gridPos.y,	gridPos.z+1));
+	points[6] = SampleData1( make_uint3( gridPos.x+1,	gridPos.y+1,	gridPos.z+1 ));
+	points[2] = SampleData1( make_uint3( gridPos.x+1,	gridPos.y+1,	gridPos.z ));	
 }
 
 __global__ void cuda_ClassifyVoxel(GenerateInfo agInfo, float3 pos, uint* voxelVertCnt, 
@@ -142,8 +166,21 @@ __global__ void cuda_ClassifyVoxel(GenerateInfo agInfo, float3 pos, uint* voxelV
 
 	float points[8];
 	int bitmap = 0;
-
-	SMethodFloor(points, gridPos, agInfo.floor, y);
+	
+	if(agInfo.genType == GM_FLOOR)
+	{
+		SMethodFloor(points, gridPos, agInfo.floor, y, agInfo.floorWeight);
+	}
+	else if(agInfo.genType == GM_SPHERE)
+	{
+		float x = (float)gridPos.x + pos.x * MARCHING_BLOCK_SIZE;
+		float z = (float)gridPos.z + pos.z * MARCHING_BLOCK_SIZE;
+		SMethodSphere(points, gridPos, make_float3(x,y,z), agInfo.sphereRad, make_float3(agInfo.spherePos[0],agInfo.spherePos[1],agInfo.spherePos[2]));
+	}
+	else
+	{
+		SMethodCaves(points, gridPos);
+	}
 
 	bitmap += (points[0] < agInfo.iso);
 	bitmap += (points[1] < agInfo.iso)<<1;
@@ -226,7 +263,18 @@ cuda_generateTriangles(GenerateInfo agInfo, float3 pos, float3 *aVertList, float
 	float points[8];
 	int bitmap = 0;
 
-	SMethodFloor(points, gridPos, agInfo.floor, y);
+	if(agInfo.genType == GM_FLOOR)
+	{
+		SMethodFloor(points, gridPos, agInfo.floor, y, agInfo.floorWeight);
+	}
+	else if(agInfo.genType == GM_SPHERE)
+	{
+		SMethodSphere(points, gridPos, make_float3(x,y,z), agInfo.sphereRad, make_float3(agInfo.spherePos[0],agInfo.spherePos[1],agInfo.spherePos[2]) );
+	}
+	else
+	{
+		SMethodCaves(points, gridPos);
+	}
 
 	//--Create lookup bitmap to find the edge table
 	bitmap += (points[0] < agInfo.iso);
@@ -345,7 +393,7 @@ __global__ void cuda_CreateCube(GenerateInfo agInfo, float3 pos, float3* aVertLi
 	float points[8];
 	int bitmap = 0;
 
-	SMethodFloor(points, make_uint3(column, row, depth), agInfo.floor, y);
+	SMethodFloor(points, make_uint3(column, row, depth), agInfo.floor, y, agInfo.floorWeight);
 
 
 	//--Create lookup bitmap to find the edge table

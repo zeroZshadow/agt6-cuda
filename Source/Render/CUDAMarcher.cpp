@@ -71,14 +71,17 @@ void CUDAMarcher::PrepareTerrain()
 	cutilSafeCall(cudaMalloc((void**) &CUDABlock::cuda_compVoxelArray, bufsize));
 
 	//Init blocks
-	Init(5, 3, 5);
+	Init(4, 4, 4);
 }
 
 void CUDAMarcher::GenerateTerrain(GenerateInfo gInfo)
 {
 	int now = timeGetTime();
 
-	gInfo.floor = (m_GridY * 32) / 2;
+	gInfo.floor = (float)((m_GridY * 32) / 2);
+	gInfo.spherePos[0] = (float)((m_GridX * 32) / 2);
+	gInfo.spherePos[1] = gInfo.floor;
+	gInfo.spherePos[2] = (float)((m_GridZ * 32) / 2);
 
 	mGenInfo = gInfo;
 	ClearTerrain();

@@ -30,6 +30,7 @@ struct GenerateInfo
 		sampleType = SM_PREMADE;
 		sphereRad = 10;
 		floor = 0.1;
+		floorWeight = 1;
 
 		prlnWeight1 = 1;
 		prlnWeight2 = 0.75;
@@ -41,11 +42,18 @@ struct GenerateInfo
 		prlnNoise4 = 0.25f;
 		gridRank = 2;
 		iso = 0.5;
+
+		spherePos[0] = 32;
+		spherePos[1] = 32;
+		spherePos[2] = 32;
 	}
+
 	GenerationMethod genType;
 	SampleMethod sampleType;
 	float sphereRad;
+	float spherePos[3];
 	float floor;
+	float floorWeight;
 	
 	float prlnWeight1;
 	float prlnWeight2;
@@ -60,16 +68,16 @@ struct GenerateInfo
 };
 
 #define PERLIN_WEIGHT_RANGE_MIN 0.f
-#define PERLIN_WEIGHT_RANGE_MAX 100.f
+#define PERLIN_WEIGHT_RANGE_MAX 10.f
 
-#define PERLIN_NOISE_RANGE_MIN 0.001f
+#define PERLIN_NOISE_RANGE_MIN 0.01f
 #define PERLIN_NOISE_RANGE_MAX 50.f
 
-#define SPHERE_GEN_RANGE_MIN 1.0f
-#define SPHERE_GEN_RANGE_MAX 80.0f
+#define SPHERE_GEN_RANGE_MIN 200.0f
+#define SPHERE_GEN_RANGE_MAX 680.0f
 
-#define FLOOR_GEN_RANGE_MIN 0.01f
-#define FLOOR_GEN_RANGE_MAX 100.0f
+#define FLOOR_GEN_RANGE_MIN 0.50f
+#define FLOOR_GEN_RANGE_MAX 2.0f
 
 #define QUICK_RANGE_MAP(x, minA, maxA, minB, maxB) (    ((x-minA) * ((maxB - minB) / (maxA - minA)) + minB)    )
 

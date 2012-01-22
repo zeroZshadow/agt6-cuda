@@ -176,7 +176,8 @@ namespace CudaTest {
 			this->FloorBar->Name = L"FloorBar";
 			this->FloorBar->Size = System::Drawing::Size(204, 45);
 			this->FloorBar->TabIndex = 9;
-			this->FloorBar->Value = 50;
+			this->FloorBar->TickFrequency = 10;
+			this->FloorBar->Value = 500;
 			// 
 			// comboBox1
 			// 
@@ -204,7 +205,8 @@ namespace CudaTest {
 			this->SphereBar->Name = L"SphereBar";
 			this->SphereBar->Size = System::Drawing::Size(206, 45);
 			this->SphereBar->TabIndex = 9;
-			this->SphereBar->Value = 5;
+			this->SphereBar->TickFrequency = 10;
+			this->SphereBar->Value = 400;
 			// 
 			// groupBox1
 			// 
@@ -322,7 +324,8 @@ namespace CudaTest {
 			this->WeightBar3->Name = L"WeightBar3";
 			this->WeightBar3->Size = System::Drawing::Size(168, 45);
 			this->WeightBar3->TabIndex = 9;
-			this->WeightBar3->Value = 25;
+			this->WeightBar3->TickFrequency = 10;
+			this->WeightBar3->Value = 200;
 			// 
 			// WeightBar2
 			// 
@@ -331,7 +334,8 @@ namespace CudaTest {
 			this->WeightBar2->Name = L"WeightBar2";
 			this->WeightBar2->Size = System::Drawing::Size(168, 45);
 			this->WeightBar2->TabIndex = 9;
-			this->WeightBar2->Value = 50;
+			this->WeightBar2->TickFrequency = 10;
+			this->WeightBar2->Value = 300;
 			// 
 			// NoiseBar3
 			// 
@@ -340,7 +344,8 @@ namespace CudaTest {
 			this->NoiseBar3->Name = L"NoiseBar3";
 			this->NoiseBar3->Size = System::Drawing::Size(248, 45);
 			this->NoiseBar3->TabIndex = 9;
-			this->NoiseBar3->Value = 75;
+			this->NoiseBar3->TickFrequency = 10;
+			this->NoiseBar3->Value = 600;
 			// 
 			// WeightBar1
 			// 
@@ -349,7 +354,8 @@ namespace CudaTest {
 			this->WeightBar1->Name = L"WeightBar1";
 			this->WeightBar1->Size = System::Drawing::Size(168, 45);
 			this->WeightBar1->TabIndex = 9;
-			this->WeightBar1->Value = 100;
+			this->WeightBar1->TickFrequency = 10;
+			this->WeightBar1->Value = 400;
 			// 
 			// NoiseBar2
 			// 
@@ -358,7 +364,8 @@ namespace CudaTest {
 			this->NoiseBar2->Name = L"NoiseBar2";
 			this->NoiseBar2->Size = System::Drawing::Size(248, 45);
 			this->NoiseBar2->TabIndex = 9;
-			this->NoiseBar2->Value = 50;
+			this->NoiseBar2->TickFrequency = 10;
+			this->NoiseBar2->Value = 500;
 			// 
 			// NoiseBar1
 			// 
@@ -367,6 +374,8 @@ namespace CudaTest {
 			this->NoiseBar1->Name = L"NoiseBar1";
 			this->NoiseBar1->Size = System::Drawing::Size(248, 45);
 			this->NoiseBar1->TabIndex = 9;
+			this->NoiseBar1->TickFrequency = 10;
+			this->NoiseBar1->Value = 400;
 			// 
 			// TerrainSize
 			// 
@@ -438,7 +447,7 @@ namespace CudaTest {
 				 }
 
 		 
-				 genInfo.floor = QUICK_RANGE_MAP( (float)FloorBar->Value, 0.f, 100.f, FLOOR_GEN_RANGE_MIN, FLOOR_GEN_RANGE_MAX) ;
+				 genInfo.floorWeight = QUICK_RANGE_MAP( (float)FloorBar->Value, 0.f, 100.f, FLOOR_GEN_RANGE_MIN, FLOOR_GEN_RANGE_MAX) ;
 				 genInfo.sphereRad = QUICK_RANGE_MAP( (float)SphereBar->Value, 0.f, 100.f, FLOOR_GEN_RANGE_MIN, FLOOR_GEN_RANGE_MAX) ;
 				 genInfo.prlnWeight1 = QUICK_RANGE_MAP( (float)WeightBar1->Value, 0.f, 100.f, PERLIN_WEIGHT_RANGE_MIN, PERLIN_WEIGHT_RANGE_MAX) ;
 				 genInfo.prlnWeight2 = QUICK_RANGE_MAP( (float)WeightBar2->Value, 0.f, 100.f, PERLIN_WEIGHT_RANGE_MIN, PERLIN_WEIGHT_RANGE_MAX) ;
