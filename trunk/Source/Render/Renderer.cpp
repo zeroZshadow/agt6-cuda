@@ -73,13 +73,8 @@ Renderer::Renderer(int argc, char* argv[])
 	//mCPUMarcher->Init(32,32,32);
 	//mCPUMarcher->Cubemarch();
 
-	int now = timeGetTime();
 	mCUDAMarcher = new CUDAMarcher();
 	//mCUDAMarcher->GenerateTerrain(GenerateInfo());
-	int result = timeGetTime() - now;
-
-	printf("> Created terrain, took %i ms\n", result);
-
 
 	mCam = new Camera(1.6f, 3.f, 5.f);
 	mCam->rotateLoc(40, 1,0,0);
