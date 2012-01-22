@@ -103,8 +103,6 @@ void CUDABlock::Init(float x, float y, float z)
 		printf("Error creating VBOs");
 		return;
 	}
-
-	//Link VBO's
 	cutilSafeCall(cudaGraphicsGLRegisterBuffer(&cuda_VBO_Vertices, m_VBO_Vertices, cudaGraphicsMapFlagsWriteDiscard));
 	cutilSafeCall(cudaGraphicsGLRegisterBuffer(&cuda_VBO_Normals, m_VBO_Normals, cudaGraphicsMapFlagsWriteDiscard));
 	cutilSafeCall(cudaGraphicsGLRegisterBuffer(&cuda_VBO_Indices, m_VBO_Indices, cudaGraphicsMapFlagsWriteDiscard));
@@ -119,7 +117,6 @@ void CUDABlock::ResizeVBOs(int vertices, int indices)
 	cutilSafeCall(cudaGraphicsUnregisterResource(cuda_VBO_Normals));
 	cutilSafeCall(cudaGraphicsUnregisterResource(cuda_VBO_Indices));
 
-	//Resize
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Vertices );
 	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * vertices, 0, GL_DYNAMIC_DRAW_ARB );
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Normals );
@@ -158,8 +155,6 @@ void CUDABlock::Build(GenerateInfo* agInfo)
 	uint activeVoxels = lastElement + lastScanElement;
 
 	if (activeVoxels==0) {
-		// return if there are no full voxels
-		uint totalVerts = 0;
 		ResizeVBOs(1, 0);
 		return;
 	}
