@@ -1,5 +1,6 @@
 #pragma once
 #include "vector_types.h"
+#include <cutil_math.h>
 class CPerlin;
 
 struct GenerateInfo;
@@ -34,4 +35,10 @@ public:
 	unsigned int m_Rank;
 
 	float3 mPos;
+
+	static uint *cuda_voxelVerts ;
+	static uint *cuda_voxelVertsScan ;
+	static uint *cuda_voxelOccupied ;
+	static uint *cuda_voxelOccupiedScan ;
+	static uint *cuda_compVoxelArray ;
 };

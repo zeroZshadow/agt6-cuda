@@ -38,6 +38,12 @@ CUDAMarcher::~CUDAMarcher()
 {
 	delete[] m_Blocks;
 	m_BlockCount = 0;
+
+	cutilSafeCall(cudaFree(CUDABlock::cuda_voxelVerts));
+	cutilSafeCall(cudaFree(CUDABlock::cuda_voxelVertsScan));
+	cutilSafeCall(cudaFree(CUDABlock::cuda_voxelOccupied));
+	cutilSafeCall(cudaFree(CUDABlock::cuda_voxelOccupiedScan));
+	cutilSafeCall(cudaFree(CUDABlock::cuda_compVoxelArray));
 }
 
 void CUDAMarcher::PrepareTerrain()
@@ -55,6 +61,13 @@ void CUDAMarcher::PrepareTerrain()
 	//-- Create and load perlin data
 	host_PerlinInitialize(0);
 	host_InitPerlinData(PERLIN_DATA_RANK, PERLIN_DATA_SIZE);
+
+	unsigned int bufsize = sizeof(uint) * MARCHING_BLOCK_SIZE*MARCHING_BLOCK_SIZE*MARCHING_BLOCK_SIZE;
+	cutilSafeCall(cudaMalloc((void**) &CUDABlock::cuda_voxelVerts, bufsize));
+	cutilSafeCall(cudaMalloc((void**) &CUDABlock::cuda_voxelVertsScan, bufsize));
+	cutilSafeCall(cudaMalloc((void**) &CUDABlock::cuda_voxelOccupied, bufsize));
+	cutilSafeCall(cudaMalloc((void**) &CUDABlock::cuda_voxelOccupiedScan, bufsize));
+	cutilSafeCall(cudaMalloc((void**) &CUDABlock::cuda_compVoxelArray, bufsize));
 
 	//Init blocks
 	Init(3, 2, 3);

@@ -40,7 +40,7 @@ struct GenerateInfo
 		prlnNoise3 = 0.5f;
 		prlnNoise4 = 0.25f;
 		gridRank = 2;
-		0.5;
+		iso = 0.5;
 	}
 	GenerationMethod genType;
 	SampleMethod sampleType;

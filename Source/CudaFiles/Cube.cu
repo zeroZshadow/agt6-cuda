@@ -1,5 +1,5 @@
 ////---CUda marching. 
-////* compacting voxel code is taken from 
+////* compacting voxel code is partially taken from NVIDIA example
 
 #include <cutil_inline.h>
 #include <cuda_runtime_api.h>
@@ -36,6 +36,8 @@ int rankPerlin;
 texture<unsigned char, 1, cudaReadModeNormalizedFloat> tPerlin1;
 texture<unsigned char, 1, cudaReadModeNormalizedFloat> tPerlin2; //-- octave 2
 texture<unsigned char, 1, cudaReadModeNormalizedFloat> tPerlin3; //-- octave 3
+
+
 
 extern __device__ float Noise3(float x, float y, float z);
 
@@ -110,7 +112,6 @@ float3 InterpVertexPos2(float3 p0, float3 p1, float f0, float f1)
 	return lerp(p0, p1, t);
 }
 
-//-- Compacting code is partially from the NVidia examples
 __global__ void cuda_ClassifyVoxel(GenerateInfo agInfo, float3 pos, uint* voxelVertCnt, 
 								   uint* voxelOccupied)
 {
@@ -147,6 +148,7 @@ __global__ void cuda_ClassifyVoxel(GenerateInfo agInfo, float3 pos, uint* voxelV
     voxelOccupied[i] = (numVerts > 0);
 }
 
+
 extern "C" 
 void launch_ClassifyVoxel( dim3 grid, dim3 threads, GenerateInfo agInfo, float3 pos, 
 						  uint* voxelVertCnt, uint *voxelOccupied)
@@ -156,37 +158,168 @@ void launch_ClassifyVoxel( dim3 grid, dim3 threads, GenerateInfo agInfo, float3 
     cutilCheckMsg("classifyVoxel failed");
 }
 
-//// compact voxel array
-//__global__ void
-//cuda_CompactVoxels(uint *compactedVoxelArray, uint *voxelOccupied, uint *voxelOccupiedScan, uint numVoxels)
-//{
-//    uint blockId = __mul24(blockIdx.y, gridDim.x) + blockIdx.x;
-//    uint i = __mul24(blockId, blockDim.x) + threadIdx.x;
-//
-//    if (voxelOccupied[i] && (i < numVoxels)) {
-//        compactedVoxelArray[ voxelOccupiedScan[i] ] = i;
-//    }
-//}
-//
-//extern "C" void 
-//launch_compactVoxels(dim3 grid, dim3 threads, uint *compactedVoxelArray, uint *voxelOccupied, uint *voxelOccupiedScan, uint numVoxels)
-//{
-//    compactVoxels<<<grid, threads>>>(compactedVoxelArray, voxelOccupied, 
-//                                     voxelOccupiedScan, numVoxels);
-//    cutilCheckMsg("compactVoxels failed");
-//}
-
-
-__device__ uint3 calcGridPos(uint i)
+//-- 
+__global__ void
+cuda_CompactVoxels(uint *compactedVoxelArray, uint *voxelOccupied, uint *voxelOccupiedScan, uint numVoxels)
 {
-	uint3 gridPos;
-	gridPos.x = i % MARCHING_BLOCK_SIZE;
-	gridPos.y = i % MARCHING_BLOCK_SIZE;
-	gridPos.z = i % MARCHING_BLOCK_SIZE;
+    uint blockId = __mul24(blockIdx.y, gridDim.x) + blockIdx.x;
+    uint i = __mul24(blockId, blockDim.x) + threadIdx.x;
+
+    if (voxelOccupied[i] && (i < numVoxels)) {
+        compactedVoxelArray[ voxelOccupiedScan[i] ] = i;
+    }
 }
 
-__global__ void cuda_CreateCube(GenerateInfo agInfo, float3 pos, float3* aVertList, float3* aNormList, unsigned int* aIndexList)
+extern "C" void 
+launch_compactVoxels(dim3 grid, dim3 threads, uint *compactedVoxelArray, uint *voxelOccupied, uint *voxelOccupiedScan, uint numVoxels)
+{
+    cuda_CompactVoxels<<<grid, threads>>>(compactedVoxelArray, voxelOccupied, 
+                                     voxelOccupiedScan, numVoxels);
 
+    cutilCheckMsg("compactVoxels failed");
+}
+
+
+__device__
+uint3 calcGridPos(uint i)
+{
+    uint3 gridPos;
+    gridPos.x = i % MARCHING_BLOCK_SIZE;
+    gridPos.y = (i / MARCHING_BLOCK_SIZE) % MARCHING_BLOCK_SIZE;
+    gridPos.z = i / (MARCHING_BLOCK_SIZE*MARCHING_BLOCK_SIZE);
+    return gridPos;
+}
+
+// version that calculates flat surface normal for each triangle
+__global__ void
+cuda_generateTriangles(GenerateInfo agInfo, float3 pos, float3 *aVertList, float3* aNormList, 
+				   uint* aTriList, uint *compactedVoxelArray, uint *numVertsScanned, 
+				   uint activeVoxels, uint maxVerts)
+{
+
+    uint blockId = __mul24(blockIdx.y, gridDim.x) + blockIdx.x;
+    uint idx = __mul24(blockId, blockDim.x) + threadIdx.x;
+
+    if (idx > activeVoxels - 1) {
+        idx = activeVoxels - 1;
+    }
+
+	uint voxelIndex = compactedVoxelArray[idx];
+	uint3 gridPos = calcGridPos( voxelIndex ); 
+	float y = gridPos.y + pos.y * MARCHING_BLOCK_SIZE;
+	float x = gridPos.x + pos.x * MARCHING_BLOCK_SIZE;
+	float z = gridPos.z + pos.z * MARCHING_BLOCK_SIZE;
+
+	float points[8];
+	int bitmap = 0;
+
+	points[0] = DensityWithFloor( make_uint3( gridPos.x,	gridPos.y,	gridPos.z ),	0.03f) - ((float)y  * 0.03f) +1;
+	points[1] = DensityWithFloor( make_uint3( gridPos.x+1,	gridPos.y,	gridPos.z ),	0.03f) - ((float)y * 0.03f) +1;
+	points[2] = DensityWithFloor( make_uint3( gridPos.x+1,	gridPos.y+1,	gridPos.z ),	0.03f) - ((float)(y+1) * 0.03f)+1;
+	points[3] = DensityWithFloor( make_uint3( gridPos.x,	gridPos.y+1,	gridPos.z ),	0.03f) - ((float)(y+1) * 0.03f)+1;
+	points[4] = DensityWithFloor( make_uint3( gridPos.x,	gridPos.y,	gridPos.z+1 ),	0.03f) - ((float)y * 0.03f)+1;
+	points[5] = DensityWithFloor( make_uint3( gridPos.x+1,	gridPos.y,	gridPos.z+1) ,	0.03f) - ((float)y * 0.03f)+1;
+	points[6] = DensityWithFloor( make_uint3( gridPos.x+1,	gridPos.y+1,	gridPos.z+1 ),	0.03f) - ((float)(y+1) * 0.03f)+1;
+	points[7] = DensityWithFloor( make_uint3( gridPos.x,	gridPos.y+1,	gridPos.z+1 ),	0.03f) - ((float)(y+1) * 0.03f)+1;
+
+	//--Create lookup bitmap to find the edge table
+	for (int i = 0; i < 8; i++)
+	{
+		//points[i] -= column * 0.1;
+		if (points[i] < agInfo.iso)
+		{
+			bitmap ^= 1<<i;						
+		}
+	}
+
+	//-- Creating triangles
+	unsigned int vertNr = tex1Dfetch(tNRVertsTex ,bitmap);
+	if (vertNr >= 255 || vertNr <= 0)
+	{
+		
+	}
+	else
+	{
+		//-- point cube
+		float3 pCube[8];
+		pCube[0] = make_float3(0, 0, 0);
+		pCube[1] = make_float3(1, 0, 0);
+		pCube[2] = make_float3(1, 1, 0);
+		pCube[3] = make_float3(0, 1, 0);
+		pCube[4] = make_float3(0, 0, 1);
+		pCube[5] = make_float3(1, 0, 1);
+		pCube[6] = make_float3(1, 1, 1);
+		pCube[7] = make_float3(0, 1, 1);
+		
+
+		float3 vertlist[12];
+
+		vertlist[0] = InterpVertexPos(agInfo.iso, pCube[0], pCube[1], points[0], points[1]);
+		vertlist[1] = InterpVertexPos(agInfo.iso, pCube[1], pCube[2], points[1], points[2]);
+		vertlist[2] = InterpVertexPos(agInfo.iso, pCube[2], pCube[3], points[2], points[3]);
+		vertlist[3] = InterpVertexPos(agInfo.iso, pCube[3], pCube[0], points[3], points[0]);
+
+		vertlist[4] = InterpVertexPos(agInfo.iso, pCube[4], pCube[5], points[4], points[5]);
+		vertlist[5] = InterpVertexPos(agInfo.iso, pCube[5], pCube[6], points[5], points[6]);
+		vertlist[6] = InterpVertexPos(agInfo.iso, pCube[6], pCube[7], points[6], points[7]);
+		vertlist[7] = InterpVertexPos(agInfo.iso, pCube[7], pCube[4], points[7], points[4]);
+
+		vertlist[8] = InterpVertexPos(agInfo.iso, pCube[0], pCube[4], points[0], points[4]);
+		vertlist[9] = InterpVertexPos(agInfo.iso, pCube[1], pCube[5], points[1], points[5]);
+		vertlist[10] = InterpVertexPos(agInfo.iso, pCube[2], pCube[6], points[2], points[6]);
+		vertlist[11] = InterpVertexPos(agInfo.iso, pCube[3], pCube[7], points[3], points[7]);
+
+		for (int i = 0; i < vertNr; i+=3)
+		{
+			uint index = numVertsScanned[voxelIndex] + i;
+			if(index < (maxVerts -3))
+			{
+				int dst = index;
+				aVertList[dst] = vertlist[tex1Dfetch(tTriTex, (bitmap * 16) + i +0)];
+				aVertList[dst] += make_float3(x,y,z);
+				aVertList[dst] *= make_float3(0.05,0.05,0.05);
+				aTriList[dst] = dst;
+
+				aVertList[dst+1] = vertlist[tex1Dfetch(tTriTex, (bitmap * 16) + i + 1)];
+				aVertList[dst+1] += make_float3(x,y,z);
+				aVertList[dst+1] *= make_float3(0.05,0.05,0.05);
+				aTriList[dst+1] = dst+1;
+
+				aVertList[dst+2] = vertlist[tex1Dfetch(tTriTex, (bitmap * 16) + i + 2)];
+				aVertList[dst+2] += make_float3(x,y,z);
+				aVertList[dst+2] *= make_float3(0.05,0.05,0.05);
+				aTriList[dst+2] = dst+2;
+
+				float3 edge1 = aVertList[dst+1] - aVertList[dst];
+				float3 edge2 = aVertList[dst+2] - aVertList[dst];
+				aNormList[dst] = normalize(cross(edge1, edge2));
+				aNormList[dst+1] = aNormList[dst];
+				aNormList[dst+2] = aNormList[dst];		
+			}
+		}
+	}
+}
+
+
+
+extern "C" void
+launch_generateTriangles(dim3 grid, dim3 threads,
+						 GenerateInfo agInfo, float3 pos, 
+						 float3 *aVertList, float3* aNormList, 
+						 uint* aTriList, uint *compactedV, uint *numVertsScanned, 
+						 uint activeVoxels, uint maxVerts)
+{
+    cuda_generateTriangles<<<grid, threads>>>(agInfo, pos, aVertList, aNormList, aTriList,
+                                            compactedV, numVertsScanned, 
+											activeVoxels, maxVerts);
+
+    cutilCheckMsg("generateTriangles failed");
+}
+
+
+
+
+__global__ void cuda_CreateCube(GenerateInfo agInfo, float3 pos, float3* aVertList, float3* aNormList, unsigned int* aIndexList)
 {
 	float iso = 0.9;
 	int column = ( blockDim.x * blockIdx.x) + threadIdx.x;
