@@ -55,7 +55,17 @@ void Renderer::Destory()
 
 void Renderer::GenerateTerrain(GenerateInfo agInfo)
 {
+	mGenInfo = agInfo;
 	mCUDAMarcher->GenerateTerrain(agInfo);
+}
+
+void Renderer::UpdateGenInfo(GenerateInfo agInfo)
+{
+	if(memcmp(&agInfo,&mGenInfo, sizeof(GenerateInfo)) != 0)
+	{
+		mGenInfo = agInfo;
+		mCUDAMarcher->GenerateTerrain(agInfo);
+	}
 }
 
 Renderer::Renderer(int argc, char* argv[])

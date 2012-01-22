@@ -14,6 +14,7 @@ public:
 	~Camera();
 
 	void setView();
+	void setLoc(float x, float y, float z);
 	void moveLoc(float x, float y, float z, float distance=1);
 	void moveGlob(float x, float y, float z, float distance=1);
 	void rotateLoc(float deg, float x, float y, float z);

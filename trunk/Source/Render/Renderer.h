@@ -19,6 +19,7 @@ public:
 	
 	Camera*				GetCam(){return mCam;}				
 
+	void				UpdateGenInfo(GenerateInfo agInfo);
 	void				GenerateTerrain(GenerateInfo agInfo);
 	void				DrawCubemap();
 
@@ -48,5 +49,6 @@ protected:
 	CGparameter			m_Param_ProjSampler[3];
 
 	Camera*				mCam;
+	GenerateInfo		mGenInfo;
 	
 };
