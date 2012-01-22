@@ -57,7 +57,7 @@ void CUDAMarcher::PrepareTerrain()
 	host_InitPerlinData(PERLIN_DATA_RANK, PERLIN_DATA_SIZE);
 
 	//Init blocks
-	Init(4, 2, 2);
+	Init(3, 2, 3);
 }
 
 void CUDAMarcher::GenerateTerrain(GenerateInfo gInfo)
