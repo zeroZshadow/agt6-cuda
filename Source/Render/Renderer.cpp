@@ -86,6 +86,7 @@ Renderer::~Renderer()
 	delete mCPUMarcher;
 	delete mCUDAMarcher;
 	delete mCam;
+	til::TIL_ShutDown();
 }
 
 void Renderer::Render()
@@ -97,6 +98,8 @@ void Renderer::Render()
 	//-- glLoadIdentity();      
 
 	mCam->setView();
+
+	DrawCubemap();
 
 	float pos[4] = {0,0,1,0};
 	glLightfv(GL_LIGHT0, GL_POSITION, pos);
@@ -204,6 +207,7 @@ void Renderer::_InitCg()
 
 void Renderer::_LoadTextures()
 {
+	//Load terrain textures
 	til::Image* image[3];
 	image[0] = til::TIL_Load("./Assets/Textures/RoughSoil.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);	//Side
 	image[1] = til::TIL_Load("./Assets/Textures/RoughSoil.png", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);		//Top
@@ -232,7 +236,109 @@ void Renderer::_LoadTextures()
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		cgGLSetupSampler(m_Param_ProjSampler[i], m_Textures[i]);
+
+		til::TIL_Release(image[i]);
 	}
+
+	//Load Sky texture
+	til::Image* skytex;
+	skytex = til::TIL_Load("./Assets/Textures/Sky.tga", TIL_FILE_ABSOLUTEPATH | TIL_DEPTH_A8B8G8R8);	//Side
+
+	glGenTextures(1,&m_SkyTexture);
+	glEnable( GL_TEXTURE_CUBE_MAP );
+	glBindTexture( GL_TEXTURE_CUBE_MAP, m_SkyTexture );
+
+	for (int face=0; face<6; face++) {
+		glTexImage2D(
+			GL_TEXTURE_CUBE_MAP_POSITIVE_X+face, 0, GL_RGBA,
+			skytex->GetPitchX(), skytex->GetPitchY(),
+			0,
+			GL_RGBA, GL_UNSIGNED_BYTE, skytex->GetPixels()
+			);
+	}
+
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glBindTexture( GL_TEXTURE_CUBE_MAP, 0 );
+	glDisable( GL_TEXTURE_CUBE_MAP );
+
+	til::TIL_Release(skytex);
+
+}
+
+void Renderer::DrawCubemap()
+{
+	glPushMatrix();
+
+	//glLoadIdentity();
+	glTranslatef(mCam->Position[0], mCam->Position[1], mCam->Position[2]);
+
+	glDisable(GL_CULL_FACE);
+	glDepthMask( GL_FALSE );  // Don't write to the depth buffer
+	glEnable( GL_TEXTURE_CUBE_MAP );
+	glBindTexture( GL_TEXTURE_CUBE_MAP, m_SkyTexture );
+	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE ); // Don't do any blending on the cube map textures
+
+	glBegin( GL_QUADS );
+	{
+		glTexCoord3f(  1, -1, -1 );
+		glVertex3f(    1, -1, -1 );
+		glTexCoord3f(  1,  1, -1 );
+		glVertex3f(    1,  1, -1 );
+		glTexCoord3f(  1,  1,  1 );
+		glVertex3f(    1,  1,  1 );
+		glTexCoord3f(  1, -1,  1 );
+		glVertex3f(    1, -1,  1 );
+		glTexCoord3f( -1, -1, -1 );
+		glVertex3f(   -1, -1, -1 );
+		glTexCoord3f( -1,  1, -1 );
+		glVertex3f(   -1,  1, -1 );
+		glTexCoord3f( -1,  1,  1 );
+		glVertex3f(   -1,  1,  1 );
+		glTexCoord3f( -1, -1,  1 );
+		glVertex3f(   -1, -1,  1 );
+		glTexCoord3f( -1,  1, -1 );
+		glVertex3f(   -1,  1, -1 );
+		glTexCoord3f(  1,  1, -1 );
+		glVertex3f(    1,  1, -1 );
+		glTexCoord3f(  1,  1,  1 );
+		glVertex3f(    1,  1,  1 );
+		glTexCoord3f( -1, 1,  1 );
+		glVertex3f(   -1, 1,  1 );
+		glTexCoord3f( -1, -1, -1 );
+		glVertex3f(   -1, -1, -1 );
+		glTexCoord3f(  1, -1, -1 );
+		glVertex3f(    1, -1, -1 );
+		glTexCoord3f(  1, -1,  1 );
+		glVertex3f(    1, -1,  1 );
+		glTexCoord3f( -1, -1,  1 );
+		glVertex3f(   -1, -1,  1 );
+		glTexCoord3f( -1, -1,  1 );
+		glVertex3f(   -1, -1,  1 );
+		glTexCoord3f(  1, -1,  1 );
+		glVertex3f(    1, -1,  1 );
+		glTexCoord3f(  1,  1,  1 );
+		glVertex3f(    1,  1,  1 );
+		glTexCoord3f( -1,  1,  1 );
+		glVertex3f(   -1,  1,  1 );
+		glTexCoord3f( -1, -1, -1 );
+		glVertex3f(   -1, -1, -1 );
+		glTexCoord3f(  1, -1, -1 );
+		glVertex3f(    1, -1, -1 );
+		glTexCoord3f(  1,  1, -1 );
+		glVertex3f(    1,  1, -1 );
+		glTexCoord3f( -1,  1, -1 );
+		glVertex3f(   -1,  1, -1 );
+		glEnd();
+	}
+
+	glBindTexture( GL_TEXTURE_CUBE_MAP, 0 );
+	glDisable( GL_TEXTURE_CUBE_MAP );
+	glDepthMask( GL_TRUE );
+	glEnable(GL_CULL_FACE);
+
+	glPopMatrix();
 }
 
 void Renderer::Resize(int w, int h)
