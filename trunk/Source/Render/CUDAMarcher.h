@@ -37,6 +37,8 @@ protected:
 	unsigned int m_BlockCount;
 	CUDABlock* m_Blocks;
 
+	int m_GridX, m_GridY, m_GridZ;
+
 	unsigned int* mCudaEdgeTable;
 	unsigned int* mCudaTriTable;
 	unsigned int* mCudaVertTable;

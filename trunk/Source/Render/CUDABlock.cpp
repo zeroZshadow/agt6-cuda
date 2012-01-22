@@ -91,6 +91,7 @@ void CUDABlock::Init(float x, float y, float z)
 	glGenBuffersARB( 1, &m_VBO_Indices );
 
 	//Setup VBO's
+	m_FaceCount = 0;
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Vertices );
 	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * 1, 0, GL_DYNAMIC_DRAW_ARB );
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Normals );
@@ -124,7 +125,7 @@ void CUDABlock::ResizeVBOs(int vertices, int indices)
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Normals );
 	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * vertices, 0, GL_DYNAMIC_DRAW_ARB );
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Indices );
-	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(GLuint) * indices, 0, GL_DYNAMIC_DRAW_ARB );
+	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(GLuint) * vertices, 0, GL_DYNAMIC_DRAW_ARB );
 
 	//Register
 	cutilSafeCall(cudaGraphicsGLRegisterBuffer(&cuda_VBO_Vertices, m_VBO_Vertices, cudaGraphicsMapFlagsWriteDiscard));
@@ -159,7 +160,7 @@ void CUDABlock::Build(GenerateInfo* agInfo)
 	if (activeVoxels==0) {
 		// return if there are no full voxels
 		uint totalVerts = 0;
-		ResizeVBOs(totalVerts, totalVerts);
+		ResizeVBOs(1, 0);
 		return;
 	}
 
@@ -228,6 +229,7 @@ void CUDABlock::Build(GenerateInfo* agInfo)
 #define BUFFER_OFFSET(i) ((char*)0 + (i))
 void CUDABlock::Render()
 {
+	if(m_FaceCount<=0) return;
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glEnableClientState( GL_NORMAL_ARRAY );
 

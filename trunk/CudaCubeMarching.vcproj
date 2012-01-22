@@ -135,6 +135,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
 				AdditionalIncludeDirectories="&quot;$(ProjectDir)inc\FreeGlut\&quot;;&quot;$(ProjectDir)inc\Glew\&quot;;&quot;$(ProjectDir)inc\Cg\&quot;;&quot;$(ProjectDir)inc\TinyImageLoader\&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				StringPooling="true"

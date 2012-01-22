@@ -1,6 +1,7 @@
 
 
 //-- OpenGL implementation headers
+#define NOMINMAX
 #include "windows.h"
 #include "glew.h"
 #include <gl\gl.h>			// Header File For The OpenGL32 Library
@@ -78,6 +79,7 @@ void CUDAMarcher::GenerateTerrain(GenerateInfo gInfo)
 	int now = timeGetTime();
 
 	mGenInfo = gInfo;
+	ClearTerrain();
 	Cubemarch();
 
 	int result = timeGetTime() - now;
@@ -86,11 +88,24 @@ void CUDAMarcher::GenerateTerrain(GenerateInfo gInfo)
 
 void CUDAMarcher::ClearTerrain()
 {
-	//delete [] m_Blocks;
+
+	for (int x = 0; x < m_GridX; x++)
+	{
+		for (int y = 0; y < m_GridY; y++)
+		{
+			for (int z = 0; z < m_GridZ; z++)
+			{
+				m_Blocks[(x * m_GridY * m_GridZ) + y * m_GridZ + z].ResizeVBOs(1,0);
+			}
+		}
+	}
 }
 
 void CUDAMarcher::Init(int gridX, int gridY, int gridZ)
 {
+	m_GridX = gridX;
+	m_GridY = gridY;
+	m_GridZ = gridZ;
 	m_BlockCount = gridZ*gridY*gridX;
 	m_Blocks = new CUDABlock[m_BlockCount];
 
