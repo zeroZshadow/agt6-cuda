@@ -6,9 +6,30 @@
 #include <cutil_gl_inline.h>
 
 #include <cuda_gl_interop.h>
+#include "Defines.h"
 
 extern "C" void launch_CreateCube(GenerateInfo* agInfo, dim3 grid, dim3 threads, float3 aPos, float3* aVertList, float3* aNormList, GLuint* aIndexList);
 extern "C" void host_CreatePerlinData(GenerateInfo* agInfo, dim3 grid, dim3 threads, float3 pos, int rank);
+
+extern "C" void launch_ClassifyVoxel( dim3 grid, dim3 threads, GenerateInfo agInfo, float3 pos, 
+						  uint* voxelVertCnt, uint *voxelOccupied);
+
+extern "C" void launch_compactVoxels(dim3 grid, dim3 threads, uint *compactedVoxelArray, uint *voxelOccupied, uint *voxelOccupiedScan, uint numVoxels);
+
+extern "C" void launch_generateTriangles(dim3 grid, dim3 threads, GenerateInfo agInfo, float3 pos, 
+						 float3 *aVertList, float3* aNormList, 
+						 uint* aTriList, uint *compactedV, uint *numVertsScanned, 
+						 uint activeVoxels, uint maxVerts);
+
+extern "C" void ThrustScanWrapper(unsigned int* output, unsigned int* input, unsigned int numElements);
+
+
+
+uint* CUDABlock::cuda_voxelVerts = 0;
+uint* CUDABlock::cuda_voxelVertsScan =0;
+uint* CUDABlock::cuda_voxelOccupied =0;
+uint* CUDABlock::cuda_voxelOccupiedScan =0;
+uint* CUDABlock::cuda_compVoxelArray =0;
 
 CUDABlock::CUDABlock()
 {
@@ -87,6 +108,7 @@ void CUDABlock::Init(float x, float y, float z)
 
 void CUDABlock::ResizeVBOs(int vertices, int indices)
 {
+	m_FaceCount = vertices;
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Vertices );
 	glBufferDataARB( GL_ARRAY_BUFFER_ARB, sizeof(float3) * vertices, 0, GL_DYNAMIC_DRAW_ARB );
 	glBindBufferARB( GL_ARRAY_BUFFER_ARB, m_VBO_Normals );
@@ -105,7 +127,51 @@ void CUDABlock::Build(GenerateInfo* agInfo)
 	dim3 PerlinblockDim(2,2,34);
 	host_CreatePerlinData(agInfo, PerlingridDim, PerlinblockDim, mPos, 33);
 
-	//Count vertices
+
+	dim3 gridDim(16,16,1);
+	dim3 blockDim(2,2,32);
+	launch_ClassifyVoxel( gridDim, blockDim, *agInfo, mPos, cuda_voxelVerts, cuda_voxelOccupied);
+
+	ThrustScanWrapper(cuda_voxelOccupiedScan, cuda_voxelOccupied, MARCHING_BLOCK_SIZE_POWER3);
+
+	uint lastElement, lastScanElement;
+	cutilSafeCall(cudaMemcpy((void *) &lastElement, 
+		(void *) (cuda_voxelOccupied + MARCHING_BLOCK_SIZE_POWER3-1), 
+		sizeof(uint), cudaMemcpyDeviceToHost));
+	cutilSafeCall(cudaMemcpy((void *) &lastScanElement, 
+		(void *) (cuda_voxelOccupiedScan + MARCHING_BLOCK_SIZE_POWER3-1), 
+		sizeof(uint), cudaMemcpyDeviceToHost));
+	uint activeVoxels = lastElement + lastScanElement;
+
+	if (activeVoxels==0) {
+		// return if there are no full voxels
+		uint totalVerts = 0;
+		return;
+	}
+
+	int threads = 128;
+	dim3 grid(MARCHING_BLOCK_SIZE_POWER3 / threads, 1, 1);
+	// get around maximum grid size of 65535 in each dimension
+	if (grid.x > 65535) {
+		grid.y = grid.x / 32768;
+		grid.x = 32768;
+	}
+	launch_compactVoxels(grid, threads, cuda_compVoxelArray,
+		cuda_voxelOccupied, cuda_voxelOccupiedScan, MARCHING_BLOCK_SIZE_POWER3);
+
+
+	ThrustScanWrapper(cuda_voxelVertsScan, cuda_voxelVerts, MARCHING_BLOCK_SIZE_POWER3);
+
+	uint lastElement2, lastScanElement2;
+	cutilSafeCall(cudaMemcpy((void *) &lastElement2, 
+		(void *) (cuda_voxelVerts + MARCHING_BLOCK_SIZE_POWER3-1), 
+		sizeof(uint), cudaMemcpyDeviceToHost));
+	cutilSafeCall(cudaMemcpy((void *) &lastScanElement2, 
+		(void *) (cuda_voxelVertsScan + MARCHING_BLOCK_SIZE_POWER3-1), 
+		sizeof(uint), cudaMemcpyDeviceToHost));
+	uint totalVerts = lastElement2 + lastScanElement2;
+
+	
 
 	//Resize VBO's
 	ResizeVBOs(m_FaceCount, m_FaceCount);
@@ -120,9 +186,24 @@ void CUDABlock::Build(GenerateInfo* agInfo)
 	cutilSafeCall(cudaGraphicsResourceGetMappedPointer((void**)&cuda_Indices, &num_bytes, cuda_VBO_Indices));
 
 	//Create cube
-	dim3 gridDim(16,16,1);
-	dim3 blockDim(2,2,32);
-	launch_CreateCube(agInfo, gridDim, blockDim, mPos, cuda_Vertices, cuda_Normals, cuda_Indices);
+	//dim3 gridDim(16,16,1);
+	//dim3 blockDim(2,2,32);
+	//launch_CreateCube(agInfo, gridDim, blockDim, mPos, cuda_Vertices, cuda_Normals, cuda_Indices);
+
+	//launch_generateTriangles(
+	dim3 grid2((int) ceil(activeVoxels / (float) 128), 1, 1);
+	while(grid2.x > 65535) {
+		grid2.x/=2;
+		grid2.y*=2;
+	}
+
+	launch_generateTriangles(grid2, 128, *agInfo, mPos, 
+		cuda_Vertices, cuda_Normals, cuda_Indices, 
+		cuda_compVoxelArray, 
+		cuda_voxelVertsScan, activeVoxels, 
+		totalVerts);
+
+
 
 	//Unmap
 	cutilSafeCall(cudaGraphicsUnmapResources(1, &cuda_VBO_Vertices, 0));
