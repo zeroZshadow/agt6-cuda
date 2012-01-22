@@ -20,6 +20,7 @@ public:
 	Camera*				GetCam(){return mCam;}				
 
 	void				GenerateTerrain(GenerateInfo agInfo);
+	void				DrawCubemap();
 
 protected:
 	Renderer(int argc, char* argv[]);
@@ -41,6 +42,7 @@ protected:
 	CGpass				m_Pass;
 
 	unsigned int		m_Textures[3];
+	unsigned int		m_SkyTexture;
 
 	CGparameter			m_Param_EyePosition;
 	CGparameter			m_Param_ProjSampler[3];
