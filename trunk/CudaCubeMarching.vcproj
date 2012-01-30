@@ -35,6 +35,8 @@
 			/>
 			<Tool
 				Name="Cudart Build Rule"
+				RequiredIncludes="$(CUDA_PATH_V4_0)\include"
+				Include="$(ProjectDir)inc/SDK/"
 				GPUDebugInfo="true"
 				Optimization="0"
 				Runtime="3"
@@ -51,7 +53,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)inc\FreeGlut\&quot;;&quot;$(ProjectDir)inc\Glew\&quot;;&quot;$(ProjectDir)inc\Cg\&quot;;&quot;$(ProjectDir)inc\TinyImageLoader\&quot;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)inc\FreeGlut\&quot;;&quot;$(ProjectDir)inc\Glew\&quot;;&quot;$(ProjectDir)inc\Cg\&quot;;&quot;$(ProjectDir)inc\TinyImageLoader\&quot;;&quot;$(ProjectDir)inc\SDK\&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="0"
@@ -73,7 +75,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="cudart.lib freeglut_d.lib glew32.lib cutil32D.lib cg.lib cgGL.lib TinyImageLoader_d.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(CUDA_PATH)lib\Win32&quot;;&quot;$(ProjectDir)lib\FreeGlut\&quot;;&quot;$(ProjectDir)lib\Glew\&quot;;&quot;$(ProjectDir)lib\Cg\&quot;;&quot;$(ProjectDir)lib\TinyImageLoader\&quot;"
+				AdditionalLibraryDirectories="&quot;$(CUDA_PATH)lib\Win32&quot;;&quot;$(ProjectDir)lib\FreeGlut\&quot;;&quot;$(ProjectDir)lib\Glew\&quot;;&quot;$(ProjectDir)lib\Cg\&quot;;&quot;$(ProjectDir)lib\TinyImageLoader\&quot;;&quot;$(ProjectDir)lib\SDK\Win32\&quot;"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
