@@ -71,7 +71,7 @@ void CUDAMarcher::PrepareTerrain()
 	cutilSafeCall(cudaMalloc((void**) &CUDABlock::cuda_compVoxelArray, bufsize));
 
 	//Init blocks
-	Init(4, 4, 4);
+	Init(10, 10, 10);
 }
 
 void CUDAMarcher::GenerateTerrain(GenerateInfo gInfo)
