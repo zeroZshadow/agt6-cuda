@@ -16,21 +16,15 @@ public:
 	bool Build(GenerateInfo* agInfo);
 	void Render();
 
+	unsigned int m_VBO_Data;
 
-	unsigned int m_VBO_Vertices;
-	unsigned int m_VBO_Normals;
-	unsigned int m_VBO_Indices;
-	unsigned int m_VBO_UVs;
-	cudaGraphicsResource *cuda_VBO_Vertices;
-	cudaGraphicsResource *cuda_VBO_Normals;
-	cudaGraphicsResource *cuda_VBO_Indices;
-	cudaGraphicsResource *cuda_VBO_UVs;
-	float3* cuda_Vertices;
-	float3* cuda_Normals;
-	unsigned int* cuda_Indices;
-	float2* cuda_UVs;
+	cudaGraphicsResource *cuda_VBO_Data;
 
-	unsigned int m_FaceCount;
+	void* cuda_Data;
+
+	unsigned int m_IndexCount;
+	unsigned int m_VertexCount;
+	size_t m_BytesUsed;
 
 	unsigned int m_Rank;
 
