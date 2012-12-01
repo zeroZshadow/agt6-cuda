@@ -243,10 +243,14 @@ uint3 calcGridPos(uint i)
 
 // version that calculates flat surface normal for each triangle
 __global__ void
-cuda_generateTriangles(GenerateInfo agInfo, float3 pos, float3 *aVertList, float3* aNormList, 
-				   uint* aTriList, uint *compactedVoxelArray, uint *numVertsScanned, 
-				   uint activeVoxels, uint maxVerts)
+
+cuda_generateTriangles(GenerateInfo agInfo, float3 pos, void *aDataList, uint *compactedVoxelArray,
+					   uint *numVertsScanned, uint activeVoxels, uint maxVerts)
 {
+	//
+	float3* aVertList = (float3*)aDataList;
+	float3* aNormList = aVertList + maxVerts;
+	uint*	aTriList = (uint*)(aNormList + maxVerts);
 
     uint blockId = __mul24(blockIdx.y, gridDim.x) + blockIdx.x;
     uint idx = __mul24(blockId, blockDim.x) + threadIdx.x;
@@ -353,14 +357,13 @@ cuda_generateTriangles(GenerateInfo agInfo, float3 pos, float3 *aVertList, float
 
 
 extern "C" void
+
 launch_generateTriangles(dim3 grid, dim3 threads,
 						 GenerateInfo agInfo, float3 pos, 
-						 float3 *aVertList, float3* aNormList, 
-						 uint* aTriList, uint *compactedV, uint *numVertsScanned, 
+						 void* aDataList, uint *compactedV, uint *numVertsScanned, 
 						 uint activeVoxels, uint maxVerts)
 {
-    cuda_generateTriangles<<<grid, threads>>>(agInfo, pos, aVertList, aNormList, aTriList,
-                                            compactedV, numVertsScanned, 
+    cuda_generateTriangles<<<grid, threads>>>(agInfo, pos, aDataList, compactedV, numVertsScanned, 
 											activeVoxels, maxVerts);
 
     cutilCheckMsg("generateTriangles failed");

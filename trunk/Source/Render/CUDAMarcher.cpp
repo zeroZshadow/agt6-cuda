@@ -71,7 +71,7 @@ void CUDAMarcher::PrepareTerrain()
 	cutilSafeCall(cudaMalloc((void**) &CUDABlock::cuda_compVoxelArray, bufsize));
 
 	//Init blocks
-	Init(10, 10, 10);
+	Init(4, 3, 4);
 }
 
 void CUDAMarcher::GenerateTerrain(GenerateInfo gInfo)
@@ -157,10 +157,17 @@ void CUDAMarcher::GenerateTileablePerlin(float* data, float scale, int rank)
 
 void CUDAMarcher::Cubemarch()
 {
+	size_t bytesused = 0;
+	unsigned int triangles = 0;
+	unsigned int vertices = 0;
 	for(unsigned int i=0; i<m_BlockCount; ++i)
 	{
 		m_Blocks[i].Build(&mGenInfo);
+		triangles += m_Blocks[i].m_IndexCount / 3;
+		vertices += m_Blocks[i].m_VertexCount;
 	}
+	printf("> Triangle count %u\n", triangles);
+	printf("> Vertex count %u\n", vertices);
 }
 
 void CUDAMarcher::Render()

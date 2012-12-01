@@ -5,6 +5,8 @@
 #define PERLIN_DATA_RANK2 43 //prime number so it repeats asyncronous
 #define PERLIN_DATA_RANK3 53
 
+#define PERLIN_DATA_SIZE 34
+
 #define MARCHING_BLOCK_SIZE 32
 #define MARCHING_BLOCK_SIZE_POWER2 1024
 #define MARCHING_BLOCK_SIZE_POWER3 32768
@@ -83,6 +85,3 @@ struct GenerateInfo
 
 
 #endif	DEFINES_H
-#define PERLIN_DATA_RANK 33
-#define PERLIN_DATA_SIZE 34
-#define MARCHING_BLOCK_SIZE 32

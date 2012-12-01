@@ -84,7 +84,6 @@ Renderer::Renderer(int argc, char* argv[])
 	//mCPUMarcher->Cubemarch();
 
 	mCUDAMarcher = new CUDAMarcher();
-	//mCUDAMarcher->GenerateTerrain(GenerateInfo());
 
 	mCam = new Camera(1.6f, 7.f, 5.f);
 	mCam->rotateLoc(40, 1,0,0);
